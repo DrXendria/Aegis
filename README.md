@@ -5,7 +5,7 @@
 
   **Dijital Hayatınızı Güvenle Senkronize Edin.**
   
-  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+  
   [![Tauri](https://img.shields.io/badge/Tauri-2.0-blue)](https://tauri.app/)
   [![React](https://img.shields.io/badge/React-19.0-61dafb?logo=react&logoColor=white)](https://reactjs.org/)
   [![Firebase](https://img.shields.io/badge/Firebase-v12-FFCA28?logo=firebase&logoColor=white)](https://firebase.google.com/)
