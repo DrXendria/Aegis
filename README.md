@@ -26,7 +26,7 @@
 ## 🚀 Hızlı Kurulum ve İndirme
 
 Aegis'i kullanmak için kodları indirmenize veya karmaşık işlemler yapmanıza **gerek yoktur.** 
-Sadece **[Releases (Sürümler)](#)** sayfasına gidin, en güncel `Aegis_Setup.exe` dosyasını indirin ve kurun! (Kendi web siteniz açıldığında buraya indirme linkini ekleyebilirsiniz.)
+Sadece **[Releases (Sürümler)](#)** sayfasına gidin, en güncel `Aegis_Setup.exe` dosyasını indirin ve kurun! 
 
 *Tüm uygulama tek bir çalıştırılabilir dosya içerisine (standalone) paketlenmiştir.*
 
