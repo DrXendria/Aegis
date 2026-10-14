@@ -7,7 +7,7 @@
   *Next-Generation Zero-Knowledge Desktop & Web Password Manager*
 
   <p align="center">
-    <a href="https://github.com/DrXendria/Aegis/releases"><img src="https://img.shields.io/badge/Release-v0.1.3-00f0ff.svg?style=for-the-badge&logo=github" alt="Release" /></a>
+    <a href="https://github.com/DrXendria/Aegis/releases"><img src="https://img.shields.io/badge/Release-v0.1.4-00f0ff.svg?style=for-the-badge&logo=github" alt="Release" /></a>
     <a href="https://tauri.app/"><img src="https://img.shields.io/badge/Tauri-2.0-24C8D8.svg?style=for-the-badge&logo=tauri&logoColor=white" alt="Tauri 2.0" /></a>
     <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19.0-61dafb.svg?style=for-the-badge&logo=react&logoColor=black" alt="React 19" /></a>
     <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.8-3178C6.svg?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" /></a>
@@ -34,18 +34,19 @@
 
 ## 🚀 Hızlı İndirme & Kurulum (Quick Download)
 
-Aegis'i kullanmak için kod derlemenize veya terminal açmanıza **gerek yoktur**. Hazır derlenmiş masaüstü yükleyicisini indirip hemen kullanmaya başlayabilirsiniz:
+Aegis'i kullanmak için kod derlemenize veya terminal açmanıza **gerek yoktur**. İşletim sisteminize uygun hazır derlenmiş masaüstü yükleyicisini indirip hemen kullanmaya başlayabilirsiniz:
 
 | Platform | İndirme Bağlantısı | Dosya Türü | Durum |
 | :--- | :--- | :--- | :--- |
-| **🪟 Windows** | [**Aegis_0.1.3_x64-setup.exe**](https://github.com/DrXendria/Aegis/releases) | `.exe` Installer | 🟢 Kararlı (Stable) |
-| **🪟 Windows (Taşınabilir)** | [**Aegis_0.1.3_x64_portable.zip**](https://github.com/DrXendria/Aegis/releases) | Portable `.zip` | 🟢 Kararlı |
-| **🍎 macOS** | [**Aegis_0.1.3_universal.dmg**](https://github.com/DrXendria/Aegis/releases) | Universal `.dmg` | 🟢 Kararlı |
-| **🐧 Linux** | [**Aegis_0.1.3_amd64.AppImage**](https://github.com/DrXendria/Aegis/releases) | `.AppImage` / `.deb` | 🟢 Kararlı |
-| **🌐 Web / PWA** | [**Web Sürümü (Browser)**](https://github.com/DrXendria/Aegis/releases) | Modern Browser | 🟢 Çevrimdışı Hazır |
+| **🪟 Windows** | [**Aegis_0.1.4_x64-setup.exe**](https://github.com/DrXendria/Aegis/releases/download/v0.1.4/Aegis_0.1.4_x64-setup.exe) | Setup Yükleyici (`.exe`) | 🟢 Kararlı (Stable) |
+| **🪟 Windows (MSI)** | [**Aegis_0.1.4_x64_en-US.msi**](https://github.com/DrXendria/Aegis/releases/download/v0.1.4/Aegis_0.1.4_x64_en-US.msi) | MSI Paketi (`.msi`) | 🟢 Kararlı |
+| **🍎 macOS (Apple Silicon)** | [**Aegis_0.1.4_aarch64.dmg**](https://github.com/DrXendria/Aegis/releases/download/v0.1.4/Aegis_0.1.4_aarch64.dmg) | Apple Silicon (`.dmg`) | 🟢 Kararlı |
+| **🐧 Linux (Evrensel)** | [**Aegis_0.1.4_amd64.AppImage**](https://github.com/DrXendria/Aegis/releases/download/v0.1.4/Aegis_0.1.4_amd64.AppImage) | Portable (`.AppImage`) | 🟢 Kararlı |
+| **🐧 Linux (Debian / Ubuntu)** | [**Aegis_0.1.4_amd64.deb**](https://github.com/DrXendria/Aegis/releases/download/v0.1.4/Aegis_0.1.4_amd64.deb) | Debian Paketi (`.deb`) | 🟢 Kararlı |
+| **🐧 Linux (Fedora / RHEL)** | [**Aegis-0.1.4-1.x86_64.rpm**](https://github.com/DrXendria/Aegis/releases/download/v0.1.4/Aegis-0.1.4-1.x86_64.rpm) | RPM Paketi (`.rpm`) | 🟢 Kararlı |
 
 > [!TIP]
-> En son sürümler ve hash imzaları için GitHub [**Releases**](https://github.com/DrXendria/Aegis/releases) sayfasını ziyaret edebilirsiniz.
+> En son sürümler, değişiklik günlükleri ve tüm indirme seçenekleri için GitHub [**Releases**](https://github.com/DrXendria/Aegis/releases/tag/v0.1.4) sayfasını ziyaret edebilirsiniz.
 
 ---
 
@@ -97,8 +98,8 @@ sequenceDiagram
 - **🔒 İki Kademeli Güvenlik:** İsteğe bağlı Firebase Bulut Senkronizasyonu + Asla kırılması mümkün olmayan yerel Master Şifre.
 - **⚠️ 90+ Günlük Eski Şifre Bildirimi:** Uzun süredir güncellenmemiş veya unutulmuş şifreler için otomatik sağlık uyarısı ve özel rozetler (`badge-old-password`).
 - **📥 1-Tıkla İçe Aktarma (Import):** Google Chrome, Bitwarden, LastPass ve Aegis yedeklerinizi tek tıkla kasanıza aktarın.
-- **⚡ Aegis'ten Çek & Hızlı Kaydet:** Arama yapmadan anında hesap bulma, tek tıkla kullanıcı adı/şifre kopyalama ve web sitelerinden hızlı kayıt.
-- **📱 Mobil & Hızlı Erişim:** iOS Safari ve Android Chrome için PWA desteği + Tek dokunuşla çalışan "Aegis'e Kaydet" yer imi (Bookmarklet).
+- **⚡ Hızlı Arama & Tek Tıkla Kopyalama:** Arama çubuğuyla anında hesap bulma, tek tıkla kullanıcı adı/şifre kopyalama, güvenli şifre üretici ve 30 saniye sonra otomatik pano temizleme.
+- **📱 Mobil & Hızlı Erişim:** Android Otomatik Doldurma (AutoFill) mimarisi + iOS Safari ve Android Chrome için PWA desteği + Tek dokunuşla çalışan yer imi (Bookmarklet).
 - **💳 Kredi Kartları & Güvenli Notlar:** CVV gizleme, kart numarası maskeleme ve özel şifreli not defteri.
 - **💱 Çoklu Para Birimli Abonelik Takibi:** Netflix, Spotify, AWS gibi aboneliklerinizi TRY, USD, EUR, GBP ve 15+ para biriminde kaydedin; anlık döviz kuruyla aylık toplam giderinizi görün.
 - **🏷️ Dinamik Kategori & Filtreleme:** Sosyal Medya, Eğlence, Eğitim, İş & Finans, Alışveriş, Oyun ve özel renkli kullanıcı kategorileri.
@@ -129,8 +130,8 @@ Aegis, mobil cihazlarda mükemmel bir eşlikçidir:
 - **iPhone / iPad (Safari):** Paylaş butonuna dokunun -> *"Ana Ekrana Ekle"* seçin.
 - **Android (Chrome):** Üç nokta menüsüne dokunun -> *"Uygulamayı Yükle"* seçin.
 
-### 2. "Aegis'ten Çek" ile Hızlı Kopyalama
-Mobil klavyeniz açıkken Aegis'e geçin, üstteki **"Aegis'ten Çek"** butonuna dokunun; aradığınız sitenin şifresini tek dokunuşla kopyalayın. 30 saniye sonra panonuz güvenlik amacıyla temizlenir.
+### 2. Otomatik Doldurma Desteği (AutoFill)
+Aegis mobil sürümünü kurduğunuzda telefonunuzun sistem ayarlarından varsayılan *Otomatik Doldurma Hizmeti* olarak Aegis'i seçebilirsiniz. Diğer uygulamalarda (Instagram, bankacılık vb.) şifre alanına dokunduğunuzda klavyenizin üstünde otomatik hesap önerisi çıkar; yeni şifre oluşturduğunuzda ise Aegis kasanıza kaydetme onayı belirir.
 
 ### 3. Mobil Tarayıcı Yer İmi (Bookmarklet)
 Safari veya Chrome mobil yer imlerinize şu kodu kaydedin:
