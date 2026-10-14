@@ -101,15 +101,6 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
   const [ccExpiry, setCcExpiry] = useState('');
   const [ccCvv, setCcCvv] = useState('');
 
-  // Quick Fetch & Quick Save states
-  const [isQuickFetchOpen, setIsQuickFetchOpen] = useState(false);
-  const [quickFetchSearch, setQuickFetchSearch] = useState('');
-  const [isQuickSaveOpen, setIsQuickSaveOpen] = useState(false);
-  const [quickSaveTitle, setQuickSaveTitle] = useState('');
-  const [quickSaveUsername, setQuickSaveUsername] = useState('');
-  const [quickSavePassword, setQuickSavePassword] = useState('');
-  const [quickSaveCategory, setQuickSaveCategory] = useState('social');
-
   // File import ref
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -349,33 +340,6 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
     }
     tryHaptic(() => safeNotificationFeedback('success'));
     closeModal();
-  };
-
-  const handleQuickSaveSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!quickSaveTitle || !quickSavePassword) {
-      alert("Lütfen başlık ve şifre alanlarını doldurun.");
-      return;
-    }
-    const encrypted = await encryptData(quickSavePassword, cryptoKey);
-    const newEntry: PasswordEntry = {
-      id: Date.now().toString() + '_' + Math.random().toString(36).substring(2, 6),
-      type: 'password',
-      title: quickSaveTitle,
-      username: quickSaveUsername,
-      category: quickSaveCategory || 'other',
-      encryptedPassword: encrypted,
-      plaintextPassword: quickSavePassword,
-      lastModified: Date.now()
-    };
-    await saveVault([...entries, newEntry]);
-    tryHaptic(() => safeNotificationFeedback('success'));
-    showToast(`✅ "${quickSaveTitle}" Aegis'e güvenle kaydedildi!`);
-    setIsQuickSaveOpen(false);
-    setQuickSaveTitle('');
-    setQuickSaveUsername('');
-    setQuickSavePassword('');
-    setQuickSaveCategory('social');
   };
 
   const closeModal = () => {
@@ -831,15 +795,6 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
   const displayUserName = userName || userEmail.split('@')[0];
   const userInitial = displayUserName.charAt(0).toUpperCase();
 
-  // Quick Fetch results
-  const quickFetchResults = useMemo(() => {
-    if (!quickFetchSearch.trim()) return entries.slice(0, 8);
-    const q = quickFetchSearch.toLowerCase();
-    return entries.filter(e => 
-      e.title.toLowerCase().includes(q) || e.username.toLowerCase().includes(q)
-    );
-  }, [entries, quickFetchSearch]);
-
   const renderContent = () => {
     if (activeTab === 'profile') {
       return (
@@ -983,50 +938,42 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
             
-            {/* Quick Fetch Card */}
+            {/* Android AutoFill Service Card */}
             <div className="glass-panel flex-col gap-4" style={{ padding: '24px' }}>
               <div className="flex-center gap-3" style={{ justifyContent: 'flex-start' }}>
                 <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(0, 240, 255, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Key size={20} style={{ color: '#00f0ff' }} />
                 </div>
                 <div>
-                  <h4 style={{ margin: 0, fontSize: '16px' }}>{t("quick_fetch") || "Aegis'ten Şifre Çek"}</h4>
-                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>Kayıtlı hesaplarınızı anında bulun ve tek tıkla kopyalayın</p>
+                  <h4 style={{ margin: 0, fontSize: '16px' }}>Android Otomatik Doldurma (AutoFill)</h4>
+                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>Klavye üstünde anında şifre önerisi ve doldurma</p>
                 </div>
               </div>
-              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                Giriş yapacağınız sitedeyken Aegis'i açıp "Aegis'ten Çek" butonuna basın. Tek dokunuşla kullanıcı adı ve şifrenizi kopyalayın. Panonuz 30 saniye sonra güvenliğiniz için otomatik olarak temizlenir.
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                Telefonunuzda başka bir uygulamaya (Instagram, Twitter, banka vb.) giriş yaparken klavyenin üstünde otomatik olarak Aegis kasanızdaki ilgili hesap çıkar; dokunduğunuzda alanları anında doldurur.
               </p>
-              <button 
-                onClick={() => setIsQuickFetchOpen(true)}
-                className="neon-btn primary flex-center gap-2" 
-                style={{ padding: '12px', justifyContent: 'center', marginTop: 'auto' }}
-              >
-                <Key size={16} /> Hemen Şifre Çek
-              </button>
+              <div style={{ fontSize: '12px', color: '#00f0ff', background: 'rgba(0, 240, 255, 0.08)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
+                ⚙️ <strong>Etkinleştirme:</strong> Telefon Ayarları &gt; Şifreler ve Otomatik Doldurma &gt; Varsayılan Hizmet: <strong>Aegis</strong>
+              </div>
             </div>
 
-            {/* Quick Save Card */}
+            {/* Cross-App Auto-Save Card */}
             <div className="glass-panel flex-col gap-4" style={{ padding: '24px' }}>
               <div className="flex-center gap-3" style={{ justifyContent: 'flex-start' }}>
                 <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(168, 85, 247, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Plus size={20} style={{ color: '#a855f7' }} />
+                  <Shield size={20} style={{ color: '#a855f7' }} />
                 </div>
                 <div>
-                  <h4 style={{ margin: 0, fontSize: '16px' }}>{t("quick_save") || "Aegis'e Hızlı Kaydet"}</h4>
-                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>Tek pencerede hızlı şifre ekleyin veya üretin</p>
+                  <h4 style={{ margin: 0, fontSize: '16px' }}>Uygulamalar Arası Otomatik Kaydetme</h4>
+                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>Yeni oluşturulan şifreleri anında kasanıza ekleyin</p>
                 </div>
               </div>
-              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                Yeni bir hesap açtığınızda karmaşık formlarla uğraşmadan site adı, kullanıcı adı ve şifreyi yazın; Aegis cihazınızda uçtan uca şifreleyerek anında buluta senkronize eder.
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                Başka bir uygulamada yeni bir hesap oluşturduğunuzda veya şifrenizi güncellediğinizde işletim sistemi ekranda "Aegis kasanıza kaydedilsin mi?" onay kartı gösterir ve şifrenizi cihazınızda uçtan uca şifreleyerek depolar.
               </p>
-              <button 
-                onClick={() => setIsQuickSaveOpen(true)}
-                className="neon-btn flex-center gap-2" 
-                style={{ padding: '12px', justifyContent: 'center', background: 'rgba(168, 85, 247, 0.15)', borderColor: 'rgba(168, 85, 247, 0.4)', color: '#fff', marginTop: 'auto' }}
-              >
-                <Plus size={16} /> Hızlı Kaydet Aç
-              </button>
+              <div style={{ fontSize: '12px', color: '#a855f7', background: 'rgba(168, 85, 247, 0.08)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(168, 85, 247, 0.2)' }}>
+                🔒 <strong>Sıfır Bilgi:</strong> Kaydedilen tüm şifreler cihazınızda AES-256-GCM ile şifrelenir.
+              </div>
             </div>
 
             {/* Mobile PWA Installation */}
@@ -1385,7 +1332,13 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
                   </span>
                 </div>
               ) : (
-                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>{entry.username}</p>
+                <p 
+                  onClick={() => entry.username && handleCopyUsername(entry.username)}
+                  style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0', cursor: entry.username ? 'pointer' : 'default' }}
+                  title={entry.username ? "Kullanıcı adını kopyalamak için tıklayın" : undefined}
+                >
+                  {entry.username}
+                </p>
               )}
             </div>
             
@@ -1495,30 +1448,6 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
           </div>
           
           <div className="flex-center gap-3">
-            {/* Quick Fetch Button */}
-            <button
-              type="button"
-              onClick={() => setIsQuickFetchOpen(true)}
-              className="neon-btn flex-center gap-2"
-              style={{ padding: '8px 14px', borderRadius: '12px', fontSize: '13px', background: 'rgba(0, 240, 255, 0.08)', borderColor: 'rgba(0, 240, 255, 0.3)' }}
-              title={t("quick_fetch") || "Aegis'ten Şifre Çek"}
-            >
-              <Key size={15} style={{ color: '#00f0ff' }} />
-              <span className="hide-on-mobile">{t("quick_fetch") || "Aegis'ten Çek"}</span>
-            </button>
-
-            {/* Quick Save Button */}
-            <button
-              type="button"
-              onClick={() => setIsQuickSaveOpen(true)}
-              className="neon-btn flex-center gap-2"
-              style={{ padding: '8px 14px', borderRadius: '12px', fontSize: '13px', background: 'rgba(168, 85, 247, 0.08)', borderColor: 'rgba(168, 85, 247, 0.3)' }}
-              title={t("quick_save") || "Aegis'e Hızlı Kaydet"}
-            >
-              <Plus size={15} style={{ color: '#a855f7' }} />
-              <span className="hide-on-mobile">{t("quick_save") || "Aegis'e Kaydet"}</span>
-            </button>
-
             {/* Old Password Alert Pill if any */}
             {oldPasswordsCount > 0 && (
               <button
@@ -1702,197 +1631,6 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
           {renderContent()}
         </div>
       </main>
-
-      {/* Quick Fetch Modal ("Aegis'ten Şifre Çek") */}
-      {isQuickFetchOpen && (
-        <div className="modal-overlay">
-          <div className="glass-panel modal-content" style={{ maxWidth: '580px', width: '100%', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
-            <div className="flex-center w-full" style={{ justifyContent: 'space-between', marginBottom: '16px' }}>
-              <div className="flex-center gap-2">
-                <Key size={20} style={{ color: '#00f0ff' }} />
-                <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>{t("quick_fetch") || "Aegis'ten Şifre Çek"}</h3>
-              </div>
-              <button 
-                onClick={() => { setIsQuickFetchOpen(false); setQuickFetchSearch(''); }} 
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div style={{ position: 'relative', marginBottom: '16px' }}>
-              <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
-              <input 
-                type="text" 
-                placeholder="Hesap veya site ara... (örn. Google, Netflix)" 
-                value={quickFetchSearch}
-                onChange={(e) => setQuickFetchSearch(e.target.value)}
-                className="neon-input"
-                style={{ width: '100%', paddingLeft: '38px', fontSize: '14px' }}
-                autoFocus
-              />
-            </div>
-
-            <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '4px' }}>
-              {quickFetchResults.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-secondary)', fontSize: '14px' }}>
-                  Sonuç bulunamadı.
-                </div>
-              ) : (
-                quickFetchResults.map(entry => (
-                  <div key={entry.id} style={{
-                    background: 'rgba(255, 255, 255, 0.04)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: '12px',
-                    padding: '12px 16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '12px'
-                  }}>
-                    <div style={{ overflow: 'hidden' }}>
-                      <div className="flex-center gap-2" style={{ justifyContent: 'flex-start', flexWrap: 'wrap' }}>
-                        <span style={{ fontWeight: 600, fontSize: '15px' }}>{entry.title}</span>
-                        {renderCategoryBadge(entry.category)}
-                        {isPasswordOld(entry) && (
-                          <span className="badge-old-password"><Clock size={10} /> 90+ gün</span>
-                        )}
-                      </div>
-                      <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                        {entry.username || 'Kullanıcı adı yok'}
-                      </p>
-                    </div>
-
-                    <div className="flex-center gap-2" style={{ flexShrink: 0 }}>
-                      {entry.username && (
-                        <button 
-                          onClick={() => handleCopyUsername(entry.username)}
-                          className="neon-btn" 
-                          style={{ padding: '6px 10px', fontSize: '12px' }}
-                          title="Kullanıcı adını kopyala"
-                        >
-                          <User size={13} />
-                        </button>
-                      )}
-                      <button 
-                        onClick={() => handleCopyPassword(entry)}
-                        className="neon-btn primary flex-center gap-1" 
-                        style={{ padding: '6px 12px', fontSize: '12px' }}
-                        title="Şifreyi kopyala (30s sonra silinir)"
-                      >
-                        <Copy size={13} /> Şifre
-                      </button>
-                      <button 
-                        onClick={() => handleShareAccount(entry)}
-                        className="neon-btn" 
-                        style={{ padding: '6px 10px', fontSize: '12px' }}
-                        title="Paylaş / Handoff"
-                      >
-                        <Share2 size={13} />
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            <p style={{ fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '16px', marginBottom: 0 }}>
-              🛡️ Kopyalanan şifreler 30 saniye sonra sistem panonuzdan otomatik temizlenir.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Quick Save Modal ("Aegis'e Hızlı Kaydet") */}
-      {isQuickSaveOpen && (
-        <div className="modal-overlay">
-          <div className="glass-panel modal-content" style={{ maxWidth: '520px', width: '100%' }}>
-            <div className="flex-center w-full" style={{ justifyContent: 'space-between', marginBottom: '20px' }}>
-              <div className="flex-center gap-2">
-                <Plus size={20} style={{ color: '#a855f7' }} />
-                <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>{t("quick_save") || "Aegis'e Hızlı Kaydet"}</h3>
-              </div>
-              <button 
-                onClick={() => setIsQuickSaveOpen(false)} 
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleQuickSaveSubmit} className="flex-col gap-4">
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>Site veya Uygulama Adı</label>
-                <input 
-                  type="text" 
-                  required
-                  placeholder="örn. github.com veya Netflix" 
-                  value={quickSaveTitle}
-                  onChange={(e) => setQuickSaveTitle(e.target.value)}
-                  className="neon-input w-full"
-                  autoFocus
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>Kullanıcı Adı veya E-posta</label>
-                <input 
-                  type="text" 
-                  placeholder="örn. user@example.com" 
-                  value={quickSaveUsername}
-                  onChange={(e) => setQuickSaveUsername(e.target.value)}
-                  className="neon-input w-full"
-                />
-              </div>
-
-              <div>
-                <div className="flex-center" style={{ justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <label style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Şifre</label>
-                  <button 
-                    type="button" 
-                    onClick={() => setQuickSavePassword(generatePassword())}
-                    style={{ background: 'none', border: 'none', color: '#00f0ff', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                  >
-                    <Sparkles size={12} /> Güçlü Şifre Üret
-                  </button>
-                </div>
-                <input 
-                  type="text" 
-                  required
-                  placeholder="Gizli şifre" 
-                  value={quickSavePassword}
-                  onChange={(e) => setQuickSavePassword(e.target.value)}
-                  className="neon-input w-full"
-                  style={{ fontFamily: 'monospace' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>Kategori</label>
-                <select 
-                  className="neon-input w-full"
-                  value={quickSaveCategory}
-                  onChange={(e) => setQuickSaveCategory(e.target.value)}
-                  style={{ padding: '10px 14px' }}
-                >
-                  {allCategoriesList.map(cat => (
-                    <option key={cat.id} value={cat.id} style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-                <button type="button" onClick={() => setIsQuickSaveOpen(false)} className="neon-btn w-full">İptal</button>
-                <button type="submit" className="neon-btn primary w-full flex-center gap-2">
-                  <Shield size={16} /> Aegis'e Şifrele ve Kaydet
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Add / Edit Modal */}
       {isAdding && (
