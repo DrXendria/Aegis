@@ -96,7 +96,17 @@ const resources = {
       "delete": "Sil",
       "password_old_warning": "Bu şifre 90+ gündür güncellenmedi",
       "import_data": "Verileri İçe Aktar (CSV / JSON)",
-      "import_success": "şifre başarıyla içe aktarıldı!"
+      "import_success": "şifre başarıyla içe aktarıldı!",
+      "old_passwords": "Eski Şifreler (90+ Gün)",
+      "mobile_companion": "Mobil & Hızlı Erişim",
+      "quick_fetch": "Aegis'ten Şifre Çek",
+      "quick_save": "Aegis'e Hızlı Kaydet",
+      "password_old_badge": "90+ gün",
+      "copy_password": "Şifreyi Kopyala",
+      "copied_toast": "Şifre panoya kopyalandı! (30 sn sonra temizlenecek)",
+      "login_biometric": "Parmak İzi ile Hızlı Giriş",
+      "biometric_prompt": "Aegis kilidini açmak için parmak izinizi okutun",
+      "biometric_failed": "Biyometrik doğrulama başarısız oldu veya iptal edildi."
     }
   },
   "en": {
@@ -193,7 +203,17 @@ const resources = {
       "delete": "Delete",
       "password_old_warning": "This password has not been updated in 90+ days",
       "import_data": "Import Data (CSV / JSON)",
-      "import_success": "passwords imported successfully!"
+      "import_success": "passwords imported successfully!",
+      "old_passwords": "Old Passwords (90+ Days)",
+      "mobile_companion": "Mobile & Quick Access",
+      "quick_fetch": "Fetch from Aegis",
+      "quick_save": "Quick Save to Aegis",
+      "password_old_badge": "90+ days",
+      "copy_password": "Copy Password",
+      "copied_toast": "Password copied to clipboard! (Cleared in 30s)",
+      "login_biometric": "Unlock with Biometrics",
+      "biometric_prompt": "Scan your fingerprint to unlock Aegis",
+      "biometric_failed": "Biometric authentication failed or was cancelled."
     }
   },
   "de": {
@@ -290,7 +310,17 @@ const resources = {
       "category_exists": "Eine Kategorie mit diesem Namen existiert bereits",
       "password_old_warning": "Dieses Passwort wurde seit 90+ Tagen nicht aktualisiert",
       "import_data": "Daten importieren (CSV / JSON)",
-      "import_success": "Passwörter erfolgreich importiert!"
+      "import_success": "Passwörter erfolgreich importiert!",
+      "old_passwords": "Alte Passwörter (90+ Tage)",
+      "mobile_companion": "Mobil & Schnellzugriff",
+      "quick_fetch": "Aus Aegis abrufen",
+      "quick_save": "Schnell in Aegis speichern",
+      "password_old_badge": "90+ Tage",
+      "copy_password": "Passwort kopieren",
+      "copied_toast": "Passwort in Zwischenablage kopiert! (Wird in 30s gelöscht)",
+      "login_biometric": "Mit Biometrie entsperren",
+      "biometric_prompt": "Fingerabdruck scannen, um Aegis zu entsperren",
+      "biometric_failed": "Biometrische Authentifizierung fehlgeschlagen oder abgebrochen."
     }
   },
   "es": {
@@ -387,7 +417,17 @@ const resources = {
       "category_exists": "Ya existe una categoría con este nombre",
       "password_old_warning": "Esta contraseña no se ha actualizado en más de 90 días",
       "import_data": "Importar datos (CSV / JSON)",
-      "import_success": "¡contraseñas importadas con éxito!"
+      "import_success": "¡contraseñas importadas con éxito!",
+      "old_passwords": "Contraseñas antiguas (90+ días)",
+      "mobile_companion": "Móvil y acceso rápido",
+      "quick_fetch": "Obtener de Aegis",
+      "quick_save": "Guardado rápido en Aegis",
+      "password_old_badge": "90+ días",
+      "copy_password": "Copiar contraseña",
+      "copied_toast": "¡Contraseña copiada al portapapeles! (Se borrará en 30s)",
+      "login_biometric": "Desbloquear con biometría",
+      "biometric_prompt": "Escanee su huella digital para desbloquear Aegis",
+      "biometric_failed": "La autenticación biométrica falló o fue cancelada."
     }
   },
   "fr": {
@@ -484,7 +524,17 @@ const resources = {
       "category_exists": "Une catégorie avec ce nom existe déjà",
       "password_old_warning": "Ce mot de passe n'a pas été mis à jour depuis plus de 90 jours",
       "import_data": "Importer des données (CSV / JSON)",
-      "import_success": "mots de passe importés avec succès !"
+      "import_success": "mots de passe importés avec succès !",
+      "old_passwords": "Mots de passe anciens (90+ jours)",
+      "mobile_companion": "Mobile & Accès rapide",
+      "quick_fetch": "Récupérer d'Aegis",
+      "quick_save": "Enregistrement rapide dans Aegis",
+      "password_old_badge": "90+ jours",
+      "copy_password": "Copier le mot de passe",
+      "copied_toast": "Mot de passe copié dans le presse-papiers ! (Effacé dans 30s)",
+      "login_biometric": "Déverrouiller avec la biométrie",
+      "biometric_prompt": "Scannez votre empreinte digitale pour déverrouiller Aegis",
+      "biometric_failed": "L'authentification biométrique a échoué ou a été annulée."
     }
   },
   "it": {
@@ -581,7 +631,17 @@ const resources = {
       "weak_passwords": "Password deboli",
       "password_old_warning": "Questa password non viene aggiornata da oltre 90 giorni",
       "import_data": "Importa dati (CSV / JSON)",
-      "import_success": "password importate con successo!"
+      "import_success": "password importate con successo!",
+      "old_passwords": "Vecchie password (90+ giorni)",
+      "mobile_companion": "Mobile e accesso rapido",
+      "quick_fetch": "Recupera da Aegis",
+      "quick_save": "Salvataggio rapido in Aegis",
+      "password_old_badge": "90+ giorni",
+      "copy_password": "Copia password",
+      "copied_toast": "Password copiata negli appunti! (Cancellata in 30s)",
+      "login_biometric": "Sblocca con dati biometrici",
+      "biometric_prompt": "Scansiona l'impronta digitale per sbloccare Aegis",
+      "biometric_failed": "Autenticazione biometrica fallita o annullata."
     }
   },
   "pt": {
@@ -678,7 +738,17 @@ const resources = {
       "weak_passwords": "Senhas fracas",
       "password_old_warning": "Esta senha não é atualizada há mais de 90 dias",
       "import_data": "Importar dados (CSV / JSON)",
-      "import_success": "senhas importadas com sucesso!"
+      "import_success": "senhas importadas com sucesso!",
+      "old_passwords": "Senhas antigas (90+ dias)",
+      "mobile_companion": "Móvel e acesso rápido",
+      "quick_fetch": "Buscar do Aegis",
+      "quick_save": "Salvamento rápido no Aegis",
+      "password_old_badge": "90+ dias",
+      "copy_password": "Copiar senha",
+      "copied_toast": "Senha copiada para a área de transferência! (Limpa em 30s)",
+      "login_biometric": "Desbloquear com biometria",
+      "biometric_prompt": "Digitalize sua impressão digital para desbloquear o Aegis",
+      "biometric_failed": "A autenticação biométrica falhou ou foi cancelada."
     }
   },
   "ru": {
@@ -775,7 +845,17 @@ const resources = {
       "weak_passwords": "Слабые пароли",
       "password_old_warning": "Этот пароль не обновлялся более 90 дней",
       "import_data": "Импорт данных (CSV / JSON)",
-      "import_success": "паролей успешно импортировано!"
+      "import_success": "паролей успешно импортировано!",
+      "old_passwords": "Старые пароли (90+ дней)",
+      "mobile_companion": "Мобильный и быстрый доступ",
+      "quick_fetch": "Получить из Aegis",
+      "quick_save": "Быстрое сохранение в Aegis",
+      "password_old_badge": "90+ дней",
+      "copy_password": "Копировать пароль",
+      "copied_toast": "Пароль скопирован в буфер! (Очистится через 30с)",
+      "login_biometric": "Войти по биометрии",
+      "biometric_prompt": "Отсканируйте отпечаток пальца для разблокировки Aegis",
+      "biometric_failed": "Биометрическая аутентификация не удалась или была отменена."
     }
   },
   "zh": {
@@ -872,7 +952,17 @@ const resources = {
       "weak_passwords": "弱密码",
       "password_old_warning": "此密码已超过 90 天未更新",
       "import_data": "导入数据 (CSV / JSON)",
-      "import_success": "个密码导入成功！"
+      "import_success": "个密码导入成功！",
+      "old_passwords": "旧密码 (90天以上)",
+      "mobile_companion": "移动与快速访问",
+      "quick_fetch": "从 Aegis 提取",
+      "quick_save": "快速保存到 Aegis",
+      "password_old_badge": "90+ 天",
+      "copy_password": "复制密码",
+      "copied_toast": "密码已复制到剪贴板！（30秒后清除）",
+      "login_biometric": "生物识别解锁",
+      "biometric_prompt": "扫描指纹以解锁 Aegis",
+      "biometric_failed": "生物识别验证失败或已取消。"
     }
   },
   "hi": {
@@ -969,7 +1059,17 @@ const resources = {
       "weak_passwords": "कमजोर पासवर्ड",
       "password_old_warning": "यह पासवर्ड 90+ दिनों से अपडेट नहीं किया गया है",
       "import_data": "डेटा आयात करें (CSV / JSON)",
-      "import_success": "पासवर्ड सफलतापूर्वक आयात किए गए!"
+      "import_success": "पासवर्ड सफलतापूर्वक आयात किए गए!",
+      "old_passwords": "पुराने पासवर्ड (90+ दिन)",
+      "mobile_companion": "मोबाइल और त्वरित पहुंच",
+      "quick_fetch": "Aegis से प्राप्त करें",
+      "quick_save": "Aegis में त्वरित सहेजें",
+      "password_old_badge": "90+ दिन",
+      "copy_password": "पासवर्ड कॉपी करें",
+      "copied_toast": "पासवर्ड क्लिपबोर्ड पर कॉपी किया गया! (30 सेकंड में हटाया जाएगा)",
+      "login_biometric": "बायोमेट्रिक्स से अनलॉक करें",
+      "biometric_prompt": "Aegis को अनलॉक करने के लिए अपना फ़िंगरप्रिंट स्कैन करें",
+      "biometric_failed": "बायोमेट्रिक प्रमाणीकरण विफल या रद्द हो गया।"
     }
   },
   "ko": {
@@ -1066,7 +1166,17 @@ const resources = {
       "weak_passwords": "취약한 비밀번호",
       "password_old_warning": "이 비밀번호는 90일 이상 업데이트되지 않았습니다",
       "import_data": "데이터 가져오기 (CSV / JSON)",
-      "import_success": "개의 비밀번호를 성공적으로 가져왔습니다!"
+      "import_success": "개의 비밀번호를 성공적으로 가져왔습니다!",
+      "old_passwords": "오래된 비밀번호 (90일 이상)",
+      "mobile_companion": "모바일 및 빠른 접근",
+      "quick_fetch": "Aegis에서 가져오기",
+      "quick_save": "Aegis에 빠른 저장",
+      "password_old_badge": "90일 이상",
+      "copy_password": "비밀번호 복사",
+      "copied_toast": "비밀번호가 클립보드에 복사되었습니다! (30초 후 삭제)",
+      "login_biometric": "생체 인식으로 잠금 해제",
+      "biometric_prompt": "Aegis 잠금을 해제하려면 지문을 스캔하세요",
+      "biometric_failed": "생체 인증에 실패했거나 취소되었습니다."
     }
   },
   "ja": {
@@ -1163,10 +1273,19 @@ const resources = {
       "weak_passwords": "脆弱なパスワード",
       "password_old_warning": "このパスワードは90日以上更新されていません",
       "import_data": "データをインポート (CSV / JSON)",
-      "import_success": "件のパスワードを正常にインポートしました！"
+      "import_success": "件のパスワードを正常にインポートしました！",
+      "old_passwords": "古いパスワード (90日以上)",
+      "mobile_companion": "モバイル＆クイックアクセス",
+      "quick_fetch": "Aegisから取得",
+      "quick_save": "Aegisにクイック保存",
+      "password_old_badge": "90日以上",
+      "copy_password": "パスワードをコピー",
+      "copied_toast": "パスワードをクリップボードにコピーしました！（30秒後に消去）",
+      "login_biometric": "生体認証でロック解除",
+      "biometric_prompt": "Aegisのロックを解除するには指紋をスキャンしてください",
+      "biometric_failed": "生体認証に失敗したか、キャンセルされました。"
     }
-  }
-  ,
+  },
   "ar": {
     "translation": {
       "login_err_empty": "يرجى إدخال البريد الإلكتروني وكلمة المرور.",
@@ -1261,7 +1380,17 @@ const resources = {
       "category_exists": "توجد فئة بهذا الاسم بالفعل",
       "password_old_warning": "لم يتم تحديث كلمة المرور هذه منذ أكثر من 90 يومًا",
       "import_data": "استيراد البيانات (CSV / JSON)",
-      "import_success": "تم استيراد كلمات المرور بنجاح!"
+      "import_success": "تم استيراد كلمات المرور بنجاح!",
+      "old_passwords": "كلمات المرور القديمة (أكثر من 90 يومًا)",
+      "mobile_companion": "الهاتف المحمول والوصول السريع",
+      "quick_fetch": "جلب من Aegis",
+      "quick_save": "حفظ سريع في Aegis",
+      "password_old_badge": "أكثر من 90 يومًا",
+      "copy_password": "نسخ كلمة المرور",
+      "copied_toast": "تم نسخ كلمة المرور إلى الحافظة! (ستمسح خلال 30 ثانية)",
+      "login_biometric": "فتح القفل بالبصمة الحيوية",
+      "biometric_prompt": "امسح بصمة إصبعك لفتح Aegis",
+      "biometric_failed": "فشلت المصادقة البيومترية أو تم إلغاؤها."
     }
   },
   "fa": {
@@ -1358,7 +1487,17 @@ const resources = {
       "category_exists": "دسته‌بندی با این نام از قبل وجود دارد",
       "password_old_warning": "این رمز عبور بیش از ۹۰ روز است که به‌روزرسانی نشده است",
       "import_data": "وارد کردن داده‌ها (CSV / JSON)",
-      "import_success": "رمز عبور با موفقیت وارد شد!"
+      "import_success": "رمز عبور با موفقیت وارد شد!",
+      "old_passwords": "رمزهای عبور قدیمی (بیش از ۹۰ روز)",
+      "mobile_companion": "موبایل و دسترسی سریع",
+      "quick_fetch": "دریافت از Aegis",
+      "quick_save": "ذخیره سریع در Aegis",
+      "password_old_badge": "بیش از ۹۰ روز",
+      "copy_password": "کپی رمز عبور",
+      "copied_toast": "رمز عبور در کلیپ‌بورد کپی شد! (پس از ۳۰ ثانیه پاک می‌شود)",
+      "login_biometric": "باز کردن با اثر انگشت / بیومتریک",
+      "biometric_prompt": "برای باز کردن قفل Aegis اثر انگشت خود را اسکن کنید",
+      "biometric_failed": "احراز هویت بیومتریک ناموفق بود یا لغو شد."
     }
   },
   "el": {
@@ -1455,7 +1594,17 @@ const resources = {
       "category_exists": "Υπάρχει ήδη κατηγορία με αυτό το όνομα",
       "password_old_warning": "Αυτός ο κωδικός πρόσβασης δεν έχει ενημερωθεί για 90+ ημέρες",
       "import_data": "Εισαγωγή δεδομένων (CSV / JSON)",
-      "import_success": "κωδικοί πρόσβασης εισήχθησαν επιτυχώς!"
+      "import_success": "κωδικοί πρόσβασης εισήχθησαν επιτυχώς!",
+      "old_passwords": "Παλιοί κωδικοί (90+ ημέρες)",
+      "mobile_companion": "Κινητό & Γρήγορη Πρόσβαση",
+      "quick_fetch": "Ανάκτηση από το Aegis",
+      "quick_save": "Γρήγορη αποθήκευση στο Aegis",
+      "password_old_badge": "90+ ημέρες",
+      "copy_password": "Αντιγραφή κωδικού",
+      "copied_toast": "Ο κωδικός αντιγράφηκε στο πρόχειρο! (Θα εκκαθαριστεί σε 30δ)",
+      "login_biometric": "Ξεκλείδωμα με βιομετρικά",
+      "biometric_prompt": "Σαρώστε το δακτυλικό σας αποτύπωμα για να ξεκλειδώσετε το Aegis",
+      "biometric_failed": "Ο βιομετρικός έλεγχος ταυτότητας απέτυχε ή ακυρώθηκε."
     }
   },
   "he": {
@@ -1552,7 +1701,17 @@ const resources = {
       "category_exists": "קטגוריה בשם זה כבר קיימת",
       "password_old_warning": "סיסמה זו לא עודכנה מעל 90 יום",
       "import_data": "ייבוא נתונים (CSV / JSON)",
-      "import_success": "סיסמאות יובאו בהצלחה!"
+      "import_success": "סיסמאות יובאו בהצלחה!",
+      "old_passwords": "סיסמאות ישנות (90+ ימים)",
+      "mobile_companion": "נייד וגישה מהירה",
+      "quick_fetch": "שליפה מ-Aegis",
+      "quick_save": "שמירה מהירה ב-Aegis",
+      "password_old_badge": "90+ ימים",
+      "copy_password": "העתק סיסמה",
+      "copied_toast": "הסיסמה הועתקה ללוח! (תימחק בעוד 30 שניות)",
+      "login_biometric": "ביטול נעילה באמצעות ביומטריה",
+      "biometric_prompt": "סרוק את טביעת האצבע שלך כדי לבטל את נעילת Aegis",
+      "biometric_failed": "האימות הביומטרי נכשל או בוטל."
     }
   },
   "da": {
@@ -1649,7 +1808,17 @@ const resources = {
       "category_exists": "En kategori med dette navn findes allerede",
       "password_old_warning": "Denne adgangskode er ikke blevet opdateret i 90+ dage",
       "import_data": "Importér data (CSV / JSON)",
-      "import_success": "adgangskoder importeret med succes!"
+      "import_success": "adgangskoder importeret med succes!",
+      "old_passwords": "Gamle adgangskoder (90+ dage)",
+      "mobile_companion": "Mobil & Hurtig adgang",
+      "quick_fetch": "Hent fra Aegis",
+      "quick_save": "Hurtig gem i Aegis",
+      "password_old_badge": "90+ dage",
+      "copy_password": "Kopiér adgangskode",
+      "copied_toast": "Adgangskode kopieret til udklipsholder! (Renses om 30s)",
+      "login_biometric": "Lås op med biometri",
+      "biometric_prompt": "Scan dit fingeraftryk for at låse Aegis op",
+      "biometric_failed": "Biometrisk godkendelse mislykkedes eller blev annulleret."
     }
   },
   "no": {
@@ -1746,7 +1915,17 @@ const resources = {
       "category_exists": "En kategori med dette navnet finnes allerede",
       "password_old_warning": "Dette passordet har ikke blitt oppdatert på 90+ dager",
       "import_data": "Importer data (CSV / JSON)",
-      "import_success": "passord importert med suksess!"
+      "import_success": "passord importert med suksess!",
+      "old_passwords": "Gamle passord (90+ dager)",
+      "mobile_companion": "Mobil og rask tilgang",
+      "quick_fetch": "Hent fra Aegis",
+      "quick_save": "Hurtiglagring til Aegis",
+      "password_old_badge": "90+ dager",
+      "copy_password": "Kopier passord",
+      "copied_toast": "Passord kopiert til utklippstavle! (Slettes om 30s)",
+      "login_biometric": "Lås opp med biometri",
+      "biometric_prompt": "Skann fingeravtrykket ditt for å låse opp Aegis",
+      "biometric_failed": "Biometrisk autentisering mislyktes eller ble avbrutt."
     }
   },
   "sv": {
@@ -1843,7 +2022,17 @@ const resources = {
       "category_exists": "En kategori med detta namn finns redan",
       "password_old_warning": "Detta lösenord har inte uppdaterats på över 90 dagar",
       "import_data": "Importera data (CSV / JSON)",
-      "import_success": "lösenord importerades framgångsrikt!"
+      "import_success": "lösenord importerades framgångsrikt!",
+      "old_passwords": "Gamla lösenord (90+ dagar)",
+      "mobile_companion": "Mobil och snabbåtkomst",
+      "quick_fetch": "Hämta från Aegis",
+      "quick_save": "Snabbspara i Aegis",
+      "password_old_badge": "90+ dagar",
+      "copy_password": "Kopiera lösenord",
+      "copied_toast": "Lösenord kopierat till urklipp! (Rensas om 30s)",
+      "login_biometric": "Lås upp med biometri",
+      "biometric_prompt": "Skanna ditt fingeravtryck för at låsa upp Aegis",
+      "biometric_failed": "Biometrisk autentisering misslyckades eller avbröts."
     }
   },
   "fi": {
@@ -1940,7 +2129,17 @@ const resources = {
       "category_exists": "Tämän niminen kategoria on jo olemassa",
       "password_old_warning": "Tätä salasanaa ei ole päivitetty yli 90 päivään",
       "import_data": "Tuo tiedot (CSV / JSON)",
-      "import_success": "salasanaa tuotu onnistuneesti!"
+      "import_success": "salasanaa tuotu onnistuneesti!",
+      "old_passwords": "Vanhat salasanat (90+ päivää)",
+      "mobile_companion": "Mobiili & Pääsy",
+      "quick_fetch": "Hae Aegisistä",
+      "quick_save": "Pikatallennus Aegisiin",
+      "password_old_badge": "90+ päivää",
+      "copy_password": "Kopioi salasana",
+      "copied_toast": "Salasana kopioitu leikepöydälle! (Poistetaan 30 sekunnissa)",
+      "login_biometric": "Avaa lukitus biometrisilla tiedoilla",
+      "biometric_prompt": "Skannaa sormenjälkesi avataksesi Aegisin",
+      "biometric_failed": "Biometrinen todennus epäonnistui tai peruttiin."
     }
   },
   "nl": {
@@ -2037,7 +2236,17 @@ const resources = {
       "category_exists": "Een categorie met deze naam bestaat al",
       "password_old_warning": "Dit wachtwoord is al meer dan 90 dagen niet bijgewerkt",
       "import_data": "Gegevens importeren (CSV / JSON)",
-      "import_success": "wachtwoorden succesvol geïmporteerd!"
+      "import_success": "wachtwoorden succesvol geïmporteerd!",
+      "old_passwords": "Oude wachtwoorden (90+ dagen)",
+      "mobile_companion": "Mobiel & Snelle toegang",
+      "quick_fetch": "Ophalen uit Aegis",
+      "quick_save": "Snel opslaan in Aegis",
+      "password_old_badge": "90+ dagen",
+      "copy_password": "Wachtwoord kopiëren",
+      "copied_toast": "Wachtwoord gekopieerd naar klembord! (Gewist in 30s)",
+      "login_biometric": "Ontgrendelen met biometrie",
+      "biometric_prompt": "Scan uw vingerafdruk om Aegis te ontgrendelen",
+      "biometric_failed": "Biometrische authenticatie mislukt of geannuleerd."
     }
   },
   "pl": {
@@ -2134,7 +2343,17 @@ const resources = {
       "category_exists": "Kategoria o tej nazwie już istnieje",
       "password_old_warning": "To hasło nie było aktualizowane od ponad 90 dni",
       "import_data": "Importuj dane (CSV / JSON)",
-      "import_success": "haseł zaimportowano pomyślnie!"
+      "import_success": "haseł zaimportowano pomyślnie!",
+      "old_passwords": "Stare hasła (90+ dni)",
+      "mobile_companion": "Mobilny i szybki dostęp",
+      "quick_fetch": "Pobierz z Aegis",
+      "quick_save": "Szybki zapis do Aegis",
+      "password_old_badge": "90+ dni",
+      "copy_password": "Kopiuj hasło",
+      "copied_toast": "Hasło skopiowane do schowka! (Usunięte po 30s)",
+      "login_biometric": "Odblokuj biometrią",
+      "biometric_prompt": "Zeskanuj odcisk palca, aby odblokować Aegis",
+      "biometric_failed": "Uwierzytelnianie biometryczne nie powiodło się lub zostało anulowane."
     }
   },
   "id": {
@@ -2231,7 +2450,17 @@ const resources = {
       "category_exists": "Kategori dengan nama ini sudah ada",
       "password_old_warning": "Kata sandi ini belum diperbarui selama 90+ hari",
       "import_data": "Impor Data (CSV / JSON)",
-      "import_success": "kata sandi berhasil diimpor!"
+      "import_success": "kata sandi berhasil diimpor!",
+      "old_passwords": "Kata Sandi Lama (90+ Hari)",
+      "mobile_companion": "Akses Cepat & Ponsel",
+      "quick_fetch": "Ambil dari Aegis",
+      "quick_save": "Simpan Cepat ke Aegis",
+      "password_old_badge": "90+ hari",
+      "copy_password": "Salin Kata Sandi",
+      "copied_toast": "Kata sandi disalin ke papan klip! (Dihapus dalam 30 detik)",
+      "login_biometric": "Buka kunci dengan biometrik",
+      "biometric_prompt": "Pindai sidik jari Anda untuk membuka kunci Aegis",
+      "biometric_failed": "Autentikasi biometrik gagal atau dibatalkan."
     }
   },
   "uk": {
@@ -2328,7 +2557,17 @@ const resources = {
       "category_exists": "Категорія з такою назвою вже існує",
       "password_old_warning": "Цей пароль не оновлювався понад 90 днів",
       "import_data": "Імпорт даних (CSV / JSON)",
-      "import_success": "паролів успішно імпортовано!"
+      "import_success": "паролів успішно імпортовано!",
+      "old_passwords": "Старі паролі (90+ днів)",
+      "mobile_companion": "Мобільний і швидкий доступ",
+      "quick_fetch": "Отримати з Aegis",
+      "quick_save": "Швидке збереження в Aegis",
+      "password_old_badge": "90+ днів",
+      "copy_password": "Копіювати пароль",
+      "copied_toast": "Пароль скопійовано в буфер обміну! (Буде очищено через 30с)",
+      "login_biometric": "Розблокувати біометрією",
+      "biometric_prompt": "Відскануйте відбиток пальця, щоб розблокувати Aegis",
+      "biometric_failed": "Біометрична автентифікація не вдалася або була скасована."
     }
   },
   "fil": {
@@ -2425,7 +2664,17 @@ const resources = {
       "category_exists": "Umiiral na ang kategorya na may ganitong pangalan",
       "password_old_warning": "Ang password na ito ay hindi na-update sa higit sa 90 araw",
       "import_data": "Mag-import ng Data (CSV / JSON)",
-      "import_success": "mga password ay matagumpay na na-import!"
+      "import_success": "mga password ay matagumpay na na-import!",
+      "old_passwords": "Lumang Password (90+ Araw)",
+      "mobile_companion": "Mobile at Mabilisang Pag-access",
+      "quick_fetch": "Kunin mula sa Aegis",
+      "quick_save": "Mabilisang I-save sa Aegis",
+      "password_old_badge": "90+ araw",
+      "copy_password": "Kopyahin ang Password",
+      "copied_toast": "Kinopya ang password sa clipboard! (Mabubura sa 30s)",
+      "login_biometric": "I-unlock gamit ang Biometrics",
+      "biometric_prompt": "I-scan ang iyong fingerprint para i-unlock ang Aegis",
+      "biometric_failed": "Nabigo o kinansela ang biometric authentication."
     }
   }
 };
