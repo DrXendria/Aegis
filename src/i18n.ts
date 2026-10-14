@@ -106,7 +106,8 @@ const resources = {
       "copied_toast": "Şifre panoya kopyalandı! (30 sn sonra temizlenecek)",
       "login_biometric": "Parmak İzi ile Hızlı Giriş",
       "biometric_prompt": "Aegis kilidini açmak için parmak izinizi okutun",
-      "biometric_failed": "Biyometrik doğrulama başarısız oldu veya iptal edildi."
+      "biometric_failed": "Biyometrik doğrulama başarısız oldu veya iptal edildi.",
+      "edit_content": "İçeriği Düzenle"
     }
   },
   "en": {
@@ -213,7 +214,8 @@ const resources = {
       "copied_toast": "Password copied to clipboard! (Cleared in 30s)",
       "login_biometric": "Unlock with Biometrics",
       "biometric_prompt": "Scan your fingerprint to unlock Aegis",
-      "biometric_failed": "Biometric authentication failed or was cancelled."
+      "biometric_failed": "Biometric authentication failed or was cancelled.",
+      "edit_content": "Edit Content"
     }
   },
   "de": {
@@ -320,7 +322,8 @@ const resources = {
       "copied_toast": "Passwort in Zwischenablage kopiert! (Wird in 30s gelöscht)",
       "login_biometric": "Mit Biometrie entsperren",
       "biometric_prompt": "Fingerabdruck scannen, um Aegis zu entsperren",
-      "biometric_failed": "Biometrische Authentifizierung fehlgeschlagen oder abgebrochen."
+      "biometric_failed": "Biometrische Authentifizierung fehlgeschlagen oder abgebrochen.",
+      "edit_content": "Inhalt bearbeiten"
     }
   },
   "es": {
@@ -427,7 +430,8 @@ const resources = {
       "copied_toast": "¡Contraseña copiada al portapapeles! (Se borrará en 30s)",
       "login_biometric": "Desbloquear con biometría",
       "biometric_prompt": "Escanee su huella digital para desbloquear Aegis",
-      "biometric_failed": "La autenticación biométrica falló o fue cancelada."
+      "biometric_failed": "La autenticación biométrica falló o fue cancelada.",
+      "edit_content": "Editar contenido"
     }
   },
   "fr": {
@@ -534,7 +538,8 @@ const resources = {
       "copied_toast": "Mot de passe copié dans le presse-papiers ! (Effacé dans 30s)",
       "login_biometric": "Déverrouiller avec la biométrie",
       "biometric_prompt": "Scannez votre empreinte digitale pour déverrouiller Aegis",
-      "biometric_failed": "L'authentification biométrique a échoué ou a été annulée."
+      "biometric_failed": "L'authentification biométrique a échoué ou a été annulée.",
+      "edit_content": "Modifier le contenu"
     }
   },
   "it": {
@@ -641,7 +646,8 @@ const resources = {
       "copied_toast": "Password copiata negli appunti! (Cancellata in 30s)",
       "login_biometric": "Sblocca con dati biometrici",
       "biometric_prompt": "Scansiona l'impronta digitale per sbloccare Aegis",
-      "biometric_failed": "Autenticazione biometrica fallita o annullata."
+      "biometric_failed": "Autenticazione biometrica fallita o annullata.",
+      "edit_content": "Modifica contenuto"
     }
   },
   "pt": {
@@ -748,7 +754,8 @@ const resources = {
       "copied_toast": "Senha copiada para a área de transferência! (Limpa em 30s)",
       "login_biometric": "Desbloquear com biometria",
       "biometric_prompt": "Digitalize sua impressão digital para desbloquear o Aegis",
-      "biometric_failed": "A autenticação biométrica falhou ou foi cancelada."
+      "biometric_failed": "A autenticação biométrica falhou ou foi cancelada.",
+      "edit_content": "Editar conteúdo"
     }
   },
   "ru": {
@@ -855,7 +862,8 @@ const resources = {
       "copied_toast": "Пароль скопирован в буфер! (Очистится через 30с)",
       "login_biometric": "Войти по биометрии",
       "biometric_prompt": "Отсканируйте отпечаток пальца для разблокировки Aegis",
-      "biometric_failed": "Биометрическая аутентификация не удалась или была отменена."
+      "biometric_failed": "Биометрическая аутентификация не удалась или была отменена.",
+      "edit_content": "Редактировать запись"
     }
   },
   "zh": {
@@ -962,7 +970,8 @@ const resources = {
       "copied_toast": "密码已复制到剪贴板！（30秒后清除）",
       "login_biometric": "生物识别解锁",
       "biometric_prompt": "扫描指纹以解锁 Aegis",
-      "biometric_failed": "生物识别验证失败或已取消。"
+      "biometric_failed": "生物识别验证失败或已取消。",
+      "edit_content": "编辑内容"
     }
   },
   "hi": {
@@ -1069,7 +1078,8 @@ const resources = {
       "copied_toast": "पासवर्ड क्लिपबोर्ड पर कॉपी किया गया! (30 सेकंड में हटाया जाएगा)",
       "login_biometric": "बायोमेट्रिक्स से अनलॉक करें",
       "biometric_prompt": "Aegis को अनलॉक करने के लिए अपना फ़िंगरप्रिंट स्कैन करें",
-      "biometric_failed": "बायोमेट्रिक प्रमाणीकरण विफल या रद्द हो गया।"
+      "biometric_failed": "बायोमेट्रिक प्रमाणीकरण विफल या रद्द हो गया।",
+      "edit_content": "सामग्री संपादित करें"
     }
   },
   "ko": {
@@ -1176,7 +1186,8 @@ const resources = {
       "copied_toast": "비밀번호가 클립보드에 복사되었습니다! (30초 후 삭제)",
       "login_biometric": "생체 인식으로 잠금 해제",
       "biometric_prompt": "Aegis 잠금을 해제하려면 지문을 스캔하세요",
-      "biometric_failed": "생체 인증에 실패했거나 취소되었습니다."
+      "biometric_failed": "생체 인증에 실패했거나 취소되었습니다.",
+      "edit_content": "콘텐츠 수정"
     }
   },
   "ja": {
@@ -1283,7 +1294,8 @@ const resources = {
       "copied_toast": "パスワードをクリップボードにコピーしました！（30秒後に消去）",
       "login_biometric": "生体認証でロック解除",
       "biometric_prompt": "Aegisのロックを解除するには指紋をスキャンしてください",
-      "biometric_failed": "生体認証に失敗したか、キャンセルされました。"
+      "biometric_failed": "生体認証に失敗したか、キャンセルされました。",
+      "edit_content": "コンテンツを編集"
     }
   },
   "ar": {
@@ -1390,7 +1402,8 @@ const resources = {
       "copied_toast": "تم نسخ كلمة المرور إلى الحافظة! (ستمسح خلال 30 ثانية)",
       "login_biometric": "فتح القفل بالبصمة الحيوية",
       "biometric_prompt": "امسح بصمة إصبعك لفتح Aegis",
-      "biometric_failed": "فشلت المصادقة البيومترية أو تم إلغاؤها."
+      "biometric_failed": "فشلت المصادقة البيومترية أو تم إلغاؤها.",
+      "edit_content": "تعديل المحتوى"
     }
   },
   "fa": {
@@ -1497,7 +1510,8 @@ const resources = {
       "copied_toast": "رمز عبور در کلیپ‌بورد کپی شد! (پس از ۳۰ ثانیه پاک می‌شود)",
       "login_biometric": "باز کردن با اثر انگشت / بیومتریک",
       "biometric_prompt": "برای باز کردن قفل Aegis اثر انگشت خود را اسکن کنید",
-      "biometric_failed": "احراز هویت بیومتریک ناموفق بود یا لغو شد."
+      "biometric_failed": "احراز هویت بیومتریک ناموفق بود یا لغو شد.",
+      "edit_content": "ویرایش محتوا"
     }
   },
   "el": {
@@ -1604,7 +1618,8 @@ const resources = {
       "copied_toast": "Ο κωδικός αντιγράφηκε στο πρόχειρο! (Θα εκκαθαριστεί σε 30δ)",
       "login_biometric": "Ξεκλείδωμα με βιομετρικά",
       "biometric_prompt": "Σαρώστε το δακτυλικό σας αποτύπωμα για να ξεκλειδώσετε το Aegis",
-      "biometric_failed": "Ο βιομετρικός έλεγχος ταυτότητας απέτυχε ή ακυρώθηκε."
+      "biometric_failed": "Ο βιομετρικός έλεγχος ταυτότητας απέτυχε ή ακυρώθηκε.",
+      "edit_content": "Επεξεργασία περιεχομένου"
     }
   },
   "he": {
@@ -1711,7 +1726,8 @@ const resources = {
       "copied_toast": "הסיסמה הועתקה ללוח! (תימחק בעוד 30 שניות)",
       "login_biometric": "ביטול נעילה באמצעות ביומטריה",
       "biometric_prompt": "סרוק את טביעת האצבע שלך כדי לבטל את נעילת Aegis",
-      "biometric_failed": "האימות הביומטרי נכשל או בוטל."
+      "biometric_failed": "האימות הביומטרי נכשל או בוטל.",
+      "edit_content": "ערוך תוכן"
     }
   },
   "da": {
@@ -1818,7 +1834,8 @@ const resources = {
       "copied_toast": "Adgangskode kopieret til udklipsholder! (Renses om 30s)",
       "login_biometric": "Lås op med biometri",
       "biometric_prompt": "Scan dit fingeraftryk for at låse Aegis op",
-      "biometric_failed": "Biometrisk godkendelse mislykkedes eller blev annulleret."
+      "biometric_failed": "Biometrisk godkendelse mislykkedes eller blev annulleret.",
+      "edit_content": "Rediger indhold"
     }
   },
   "no": {
@@ -1925,7 +1942,8 @@ const resources = {
       "copied_toast": "Passord kopiert til utklippstavle! (Slettes om 30s)",
       "login_biometric": "Lås opp med biometri",
       "biometric_prompt": "Skann fingeravtrykket ditt for å låse opp Aegis",
-      "biometric_failed": "Biometrisk autentisering mislyktes eller ble avbrutt."
+      "biometric_failed": "Biometrisk autentisering mislyktes eller ble avbrutt.",
+      "edit_content": "Rediger innhold"
     }
   },
   "sv": {
@@ -2032,7 +2050,8 @@ const resources = {
       "copied_toast": "Lösenord kopierat till urklipp! (Rensas om 30s)",
       "login_biometric": "Lås upp med biometri",
       "biometric_prompt": "Skanna ditt fingeravtryck för at låsa upp Aegis",
-      "biometric_failed": "Biometrisk autentisering misslyckades eller avbröts."
+      "biometric_failed": "Biometrisk autentisering misslyckades eller avbröts.",
+      "edit_content": "Redigera innehåll"
     }
   },
   "fi": {
@@ -2139,7 +2158,8 @@ const resources = {
       "copied_toast": "Salasana kopioitu leikepöydälle! (Poistetaan 30 sekunnissa)",
       "login_biometric": "Avaa lukitus biometrisilla tiedoilla",
       "biometric_prompt": "Skannaa sormenjälkesi avataksesi Aegisin",
-      "biometric_failed": "Biometrinen todennus epäonnistui tai peruttiin."
+      "biometric_failed": "Biometrinen todennus epäonnistui tai peruttiin.",
+      "edit_content": "Muokkaa sisältöä"
     }
   },
   "nl": {
@@ -2246,7 +2266,8 @@ const resources = {
       "copied_toast": "Wachtwoord gekopieerd naar klembord! (Gewist in 30s)",
       "login_biometric": "Ontgrendelen met biometrie",
       "biometric_prompt": "Scan uw vingerafdruk om Aegis te ontgrendelen",
-      "biometric_failed": "Biometrische authenticatie mislukt of geannuleerd."
+      "biometric_failed": "Biometrische authenticatie mislukt of geannuleerd.",
+      "edit_content": "Inhoud bewerken"
     }
   },
   "pl": {
@@ -2353,7 +2374,8 @@ const resources = {
       "copied_toast": "Hasło skopiowane do schowka! (Usunięte po 30s)",
       "login_biometric": "Odblokuj biometrią",
       "biometric_prompt": "Zeskanuj odcisk palca, aby odblokować Aegis",
-      "biometric_failed": "Uwierzytelnianie biometryczne nie powiodło się lub zostało anulowane."
+      "biometric_failed": "Uwierzytelnianie biometryczne nie powiodło się lub zostało anulowane.",
+      "edit_content": "Edytuj zawartość"
     }
   },
   "id": {
@@ -2460,7 +2482,8 @@ const resources = {
       "copied_toast": "Kata sandi disalin ke papan klip! (Dihapus dalam 30 detik)",
       "login_biometric": "Buka kunci dengan biometrik",
       "biometric_prompt": "Pindai sidik jari Anda untuk membuka kunci Aegis",
-      "biometric_failed": "Autentikasi biometrik gagal atau dibatalkan."
+      "biometric_failed": "Autentikasi biometrik gagal atau dibatalkan.",
+      "edit_content": "Edit Konten"
     }
   },
   "uk": {
@@ -2567,7 +2590,8 @@ const resources = {
       "copied_toast": "Пароль скопійовано в буфер обміну! (Буде очищено через 30с)",
       "login_biometric": "Розблокувати біометрією",
       "biometric_prompt": "Відскануйте відбиток пальця, щоб розблокувати Aegis",
-      "biometric_failed": "Біометрична автентифікація не вдалася або була скасована."
+      "biometric_failed": "Біометрична автентифікація не вдалася або була скасована.",
+      "edit_content": "Редагувати вміст"
     }
   },
   "fil": {
@@ -2674,7 +2698,8 @@ const resources = {
       "copied_toast": "Kinopya ang password sa clipboard! (Mabubura sa 30s)",
       "login_biometric": "I-unlock gamit ang Biometrics",
       "biometric_prompt": "I-scan ang iyong fingerprint para i-unlock ang Aegis",
-      "biometric_failed": "Nabigo o kinansela ang biometric authentication."
+      "biometric_failed": "Nabigo o kinansela ang biometric authentication.",
+      "edit_content": "I-edit ang Nilalaman"
     }
   }
 };

@@ -124,6 +124,42 @@ body::before {
   color: var(--text-placeholder);
 }
 
+select.neon-input {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border: var(--border-subtle) !important;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+  padding-right: 40px !important;
+}
+
+select.neon-input:focus {
+  border: var(--border-focus) !important;
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+select.neon-input option {
+  background-color: #141416 !important;
+  color: #ededed !important;
+  padding: 10px 14px;
+}
+
+[data-theme="light"] select.neon-input {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
+[data-theme="light"] select.neon-input option {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+}
+
 /* Buttons - Solid, Tactile, Elegant */
 .neon-btn {
   background: var(--bg-secondary);

@@ -1638,7 +1638,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
           <div className="glass-panel modal-content">
             <div className="flex-center w-full" style={{ justifyContent: 'space-between', marginBottom: '24px' }}>
               <h3 style={{ fontSize: '20px', fontWeight: 600 }}>
-                {editingId ? "Öğeyi Düzenle" : t("add_password")}
+                {editingId ? (t("edit_content") || "İçeriği Düzenle") : t("add_password")}
               </h3>
               <button onClick={closeModal} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
                 <X size={20} />
@@ -1718,11 +1718,18 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
                       className="neon-input" 
                       value={subCurrency}
                       onChange={(e) => setSubCurrency(e.target.value)}
-                      style={{ flex: 1, padding: '12px' }}
+                      style={{ 
+                        flex: 1, 
+                        padding: '12px',
+                        backgroundColor: 'var(--bg-secondary)',
+                        color: 'var(--text-primary)',
+                        appearance: 'none',
+                        WebkitAppearance: 'none'
+                      }}
                     >
-                      <option value="TRY">TRY (₺)</option>
-                      <option value="USD">USD ($)</option>
-                      <option value="EUR">EUR (€)</option>
+                      <option value="TRY" style={{ background: '#141416', color: '#ededed' }}>TRY (₺)</option>
+                      <option value="USD" style={{ background: '#141416', color: '#ededed' }}>USD ($)</option>
+                      <option value="EUR" style={{ background: '#141416', color: '#ededed' }}>EUR (€)</option>
                     </select>
                   </div>
                   <input 
@@ -1812,10 +1819,16 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
                   className="neon-input w-full"
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
-                  style={{ padding: '12px 16px' }}
+                  style={{ 
+                    padding: '12px 16px',
+                    backgroundColor: 'var(--bg-secondary)',
+                    color: 'var(--text-primary)',
+                    appearance: 'none',
+                    WebkitAppearance: 'none'
+                  }}
                 >
                   {allCategoriesList.map(cat => (
-                    <option key={cat.id} value={cat.id} style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
+                    <option key={cat.id} value={cat.id} style={{ background: '#141416', color: '#ededed' }}>
                       {cat.name}
                     </option>
                   ))}
