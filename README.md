@@ -24,25 +24,11 @@
 
   <p align="center">
     <a href="#-hızlı-indirme--kurulum-quick-download"><strong>Hemen İndir (.exe)</strong></a> &bull;
-    <a href="#-tanıtım-web-sitesi--canlı-demo"><strong>Tanıtım Web Sitesi</strong></a> &bull;
     <a href="#️-sıfır-bilgi-zero-knowledge-güvenlik-mimarisi"><strong>Güvenlik Şeması</strong></a> &bull;
     <a href="#-25-desteklenen-küresel-dil-100-yerel"><strong>Diller</strong></a> &bull;
     <a href="#-geliştirici-rehberi-development"><strong>Geliştirici Rehberi</strong></a>
   </p>
 </div>
-
----
-
-## 🌐 Tanıtım Web Sitesi & Canlı Demo
-
-Aegis Vault için interaktif parola oluşturucu, sıfır-bilgi şifreleme simülatörü ve doğrudan indirme butonları içeren özel bir tanıtım web sitesi hazırlanmıştır:
-
-- **Web Sitesi Dosyası:** [`public/landing.html`](public/landing.html) veya [`website/index.html`](website/index.html)
-- **Canlı Önizleme:** Projeyi çalıştırdığınızda `http://localhost:5173/landing.html` adresinden veya GitHub Pages / Vercel üzerinde tek tıkla yayınlayabilirsiniz.
-- **İnteraktif Özellikler:**
-  - Gerçek zamanlı Entropi & Kırılma Süresi hesaplayan Şifre Oluşturucu Widget'ı.
-  - PBKDF2 + AES-GCM şifreleme akışını adım adım gösteren görsel animasyon.
-  - Windows, macOS, Linux ve Web için tek tık indirme merkezi.
 
 ---
 
@@ -56,7 +42,7 @@ Aegis'i kullanmak için kod derlemenize veya terminal açmanıza **gerek yoktur*
 | **🪟 Windows (Taşınabilir)** | [**Aegis_0.1.3_x64_portable.zip**](https://github.com/DrXendria/Aegis/releases) | Portable `.zip` | 🟢 Kararlı |
 | **🍎 macOS** | [**Aegis_0.1.3_universal.dmg**](https://github.com/DrXendria/Aegis/releases) | Universal `.dmg` | 🟢 Kararlı |
 | **🐧 Linux** | [**Aegis_0.1.3_amd64.AppImage**](https://github.com/DrXendria/Aegis/releases) | `.AppImage` / `.deb` | 🟢 Kararlı |
-| **🌐 Web / PWA** | [**Web Sürümünü Başlat**](public/landing.html) | Modern Browser | 🟢 Çevrimdışı Hazır |
+| **🌐 Web / PWA** | [**Web Sürümü (Browser)**](https://github.com/DrXendria/Aegis/releases) | Modern Browser | 🟢 Çevrimdışı Hazır |
 
 > [!TIP]
 > En son sürümler ve hash imzaları için GitHub [**Releases**](https://github.com/DrXendria/Aegis/releases) sayfasını ziyaret edebilirsiniz.
