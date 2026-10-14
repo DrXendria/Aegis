@@ -1,6 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Shield, Lock, Mail, User, ChevronRight, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { Shield, Lock, Mail, User, ChevronRight, CheckCircle2, Eye, EyeOff, Fingerprint } from 'lucide-react';
+
+const tryHaptic = (action: () => Promise<any>) => action().catch(() => {});
+
+const safeNotificationFeedback = async (type: string) => {
+  try {
+    const mod = await import('@tauri-apps/plugin-haptics');
+    return mod.notificationFeedback(type as any);
+  } catch { /* plugin not available */ }
+};
+
+const safeBiometricCheckStatus = async () => {
+  try {
+    const mod = await import('@tauri-apps/plugin-biometric');
+    return mod.checkStatus();
+  } catch { return { isAvailable: false }; }
+};
+
+const safeBiometricAuthenticate = async (reason: string) => {
+  const mod = await import('@tauri-apps/plugin-biometric');
+  return mod.authenticate(reason);
+};
 import { deriveKeyFromMasterPassword } from '../crypto';
 import { auth, db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -18,6 +39,8 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
   const [showAuthPassword, setShowAuthPassword] = useState(false);
   const [firebaseUser, setFirebaseUser] = useState<any>(null);
   const [userName, setUserName] = useState('');
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [savedMasterPassword, setSavedMasterPassword] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -28,6 +51,22 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
         setFirebaseUser(null);
       }
     });
+    
+    const checkBio = async () => {
+      try {
+        const status = await safeBiometricCheckStatus();
+        if (status.isAvailable) {
+          setBiometricAvailable(true);
+        }
+      } catch (e) {
+        console.warn("Biometrics not available or not supported on this platform.", e);
+      }
+    };
+    checkBio();
+    
+    const saved = localStorage.getItem('aegis_master');
+    if (saved) setSavedMasterPassword(saved);
+    
     return () => unsubscribe();
   }, []);
 
@@ -81,17 +120,13 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
       } else {
         setError(err.message || t("login_err_fail"));
       }
+      tryHaptic(() => safeNotificationFeedback('error'));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleMasterUnlock = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!masterPassword) {
-      setError(t("login_err_master"));
-      return;
-    }
+  const performUnlock = async (pass: string) => {
     setIsLoading(true);
     setError('');
     try {
@@ -101,7 +136,8 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
       for(let i=0; i<Math.min(16, uidBytes.length); i++) {
         salt[i] = uidBytes[i];
       }
-      const key = await deriveKeyFromMasterPassword(masterPassword, salt);
+      const key = await deriveKeyFromMasterPassword(pass, salt);
+      localStorage.setItem('aegis_master', pass);
       setTimeout(() => {
         onUnlock(key, firebaseUser.uid);
         setIsLoading(false);
@@ -109,6 +145,28 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
     } catch (err) {
       setError(t("login_err_master_invalid"));
       setIsLoading(false);
+      tryHaptic(() => safeNotificationFeedback('error'));
+    }
+  };
+
+  const handleMasterUnlock = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!masterPassword) {
+      setError(t("login_err_master"));
+      return;
+    }
+    performUnlock(masterPassword);
+  };
+
+  const handleBiometricUnlock = async () => {
+    if (!savedMasterPassword) return;
+    try {
+      await safeBiometricAuthenticate(t("biometric_prompt") || 'Aegis kilidini açmak için parmak izinizi okutun');
+      setMasterPassword(savedMasterPassword);
+      performUnlock(savedMasterPassword);
+    } catch (e) {
+      setError(t("biometric_failed") || 'Biyometrik doğrulama başarısız oldu veya iptal edildi.');
+      tryHaptic(() => safeNotificationFeedback('error'));
     }
   };
 
@@ -229,6 +287,18 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
               <span>{isLoading ? t("login_opening") : t("login_unlock")}</span>
               <Lock size={18} opacity={0.7} />
             </button>
+            {biometricAvailable && savedMasterPassword && (
+              <button 
+                type="button" 
+                onClick={handleBiometricUnlock}
+                className="neon-btn w-full flex-center gap-2"
+                disabled={isLoading}
+                style={{ padding: '16px', fontSize: '15px', borderRadius: '14px', marginTop: '4px', background: 'var(--bg-primary)' }}
+              >
+                <Fingerprint size={18} style={{ color: 'var(--text-primary)' }} />
+                <span>{t("login_biometric") || "Parmak İzi ile Hızlı Giriş"}</span>
+              </button>
+            )}
           </form>
         )}
       </div>

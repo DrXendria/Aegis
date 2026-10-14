@@ -1,0 +1,6 @@
+#!/usr/bin/expect -f
+set timeout -1
+spawn bash -c "source ~/.cargo/env && npx @tauri-apps/cli android init"
+expect "Do you want to install the Android Studio command line tools"
+send "y\r"
+expect eof

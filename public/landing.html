@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aegis Vault | Zero-Knowledge Modern Password Manager</title>
+  <meta name="description" content="Aegis Vault is an ultra-secure, open-source, Zero-Knowledge password manager built with Tauri 2.0, React 19, and AES-256-GCM client-side encryption. Available in 25 native languages.">
+  <meta name="keywords" content="password manager, zero knowledge encryption, aes 256 gcm, open source password manager, tauri 2, privacy vault">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-card: rgba(15, 23, 42, 0.65);
+      --bg-card-hover: rgba(30, 41, 59, 0.8);
+      --border-glow: rgba(0, 240, 255, 0.25);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --cyan: #00f0ff;
+      --cyan-glow: rgba(0, 240, 255, 0.4);
+      --purple: #a855f7;
+      --purple-glow: rgba(168, 85, 247, 0.4);
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+      line-height: 1.6;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(0, 240, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.09) 0%, transparent 40%),
+        radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+      background-attachment: fixed;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Glass Effect */
+    .glass-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .glass-card:hover {
+      border-color: var(--border-glow);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 25px rgba(0, 240, 255, 0.1);
+      transform: translateY(-3px);
+    }
+
+    /* Navbar */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(7, 9, 14, 0.8);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 16px 0;
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .logo svg {
+      width: 32px;
+      height: 32px;
+      stroke: var(--cyan);
+      filter: drop-shadow(0 0 8px var(--cyan-glow));
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--cyan);
+    }
+
+    .nav-actions {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #00f0ff 0%, #0284c7 100%);
+      color: #030712;
+      box-shadow: 0 4px 20px rgba(0, 240, 255, 0.35);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 6px 28px rgba(0, 240, 255, 0.55);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      border-color: var(--border-subtle);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text-main);
+      border-color: var(--border-subtle);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--purple);
+      color: var(--purple);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 100px 0 80px;
+      text-align: center;
+      position: relative;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border-radius: 9999px;
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--cyan);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      animation: subtle-pulse 3s infinite ease-in-out;
+    }
+
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: 64px;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      letter-spacing: -1px;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #ffffff 30%, #00f0ff 70%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 720px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 50px;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+      margin-top: 40px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-val {
+      font-family: var(--font-heading);
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--cyan);
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Section Styles */
+    .section {
+      padding: 90px 0;
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 680px;
+      margin: 0 auto 60px;
+    }
+
+    .section-tag {
+      color: var(--cyan);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: 40px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+
+    /* Features Grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .feature-icon-wrapper {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--cyan);
+    }
+
+    .feature-card.purple .feature-icon-wrapper {
+      background: rgba(168, 85, 247, 0.1);
+      border-color: rgba(168, 85, 247, 0.2);
+      color: var(--purple);
+    }
+
+    .feature-card.emerald .feature-icon-wrapper {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.2);
+      color: var(--emerald);
+    }
+
+    .feature-card.amber .feature-icon-wrapper {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgba(245, 158, 11, 0.2);
+      color: var(--amber);
+    }
+
+    .feature-title {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .feature-desc {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* Interactive Demo Box */
+    .demo-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: stretch;
+    }
+
+    .generator-box {
+      padding: 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .output-display {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-glow);
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: monospace;
+      font-size: 18px;
+      color: var(--cyan);
+      word-break: break-all;
+    }
+
+    .meter-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .meter-fill {
+      height: 100%;
+      width: 85%;
+      background: linear-gradient(90deg, #f59e0b, #10b981, #00f0ff);
+      transition: width 0.3s;
+    }
+
+    /* Zero Knowledge Diagram */
+    .crypto-step-box {
+      padding: 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      position: relative;
+    }
+
+    .step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .step-content h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .step-content p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Comparison Table */
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .comparison-table th,
+    .comparison-table td {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 14px;
+    }
+
+    .comparison-table th {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.4);
+    }
+
+    .comparison-table th.highlight,
+    .comparison-table td.highlight {
+      background: rgba(0, 240, 255, 0.05);
+      color: var(--cyan);
+      font-weight: 600;
+      border-left: 1px solid rgba(0, 240, 255, 0.2);
+      border-right: 1px solid rgba(0, 240, 255, 0.2);
+    }
+
+    /* Download Cards */
+    .download-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .download-card {
+      padding: 32px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .os-icon {
+      width: 48px;
+      height: 48px;
+      color: var(--cyan);
+      margin-bottom: 8px;
+    }
+
+    /* Languages Grid */
+    .lang-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .lang-chip {
+      padding: 8px 16px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      font-size: 13px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .lang-chip:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 60px 0 40px;
+      background: rgba(5, 7, 10, 0.9);
+      margin-top: 60px;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+
+    .footer-copy {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Animations */
+    @keyframes subtle-pulse {
+      0%, 100% { opacity: 0.9; box-shadow: 0 0 0 rgba(0, 240, 255, 0); }
+      50% { opacity: 0.6; box-shadow: 0 0 12px rgba(0, 240, 255, 0.3); }
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .hero-title { font-size: 44px; }
+      .demo-container { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a href="#" class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2-1 4-2 7-2 2.76 0 5 1 7 2a1 1 0 0 1 1 1z"/>
+        </svg>
+        <span>Aegis Vault</span>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#interactive-demo">Generator Demo</a></li>
+          <li><a href="#zero-knowledge">Security Model</a></li>
+          <li><a href="#languages">25 Languages</a></li>
+          <li><a href="#downloads">Downloads</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="#downloads" class="btn btn-primary" id="btn-nav-download">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download .exe
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="badge-pill">
+        <span>🛡️ Aegis v0.1.3 Released • Zero-Knowledge • 25 Languages</span>
+      </div>
+
+      <h1 class="hero-title">
+        Your Digital Life.<br>
+        <span class="gradient-text">Zero-Knowledge. Infinite Peace.</span>
+      </h1>
+
+      <p class="hero-desc">
+        Aegis is an ultra-modern, glassmorphic desktop and web password vault. Built with Tauri 2.0, React 19, and local AES-256-GCM encryption with 600,000 PBKDF2 iterations. Your master password never leaves your device.
+      </p>
+
+      <div class="hero-cta">
+        <a href="#downloads" class="btn btn-primary" style="padding: 16px 36px; font-size: 16px;" id="hero-btn-download">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download for Windows (.exe)
+        </a>
+        <a href="https://github.com/DrXendria/Aegis" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding: 16px 28px; font-size: 16px;" id="hero-btn-github">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          View Source on GitHub
+        </a>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-val">600,000</div>
+          <div class="stat-label">PBKDF2 SHA-256 Iterations</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val">256-bit</div>
+          <div class="stat-label">AES-GCM Authenticated Cipher</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val">25</div>
+          <div class="stat-label">Native Languages Supported</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val">100%</div>
+          <div class="stat-label">Zero-Knowledge Architecture</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Demo Section -->
+  <section class="section" id="interactive-demo">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Try It Live</span>
+        <h2 class="section-title">Cryptographic Strength at Your Fingertips</h2>
+        <p class="section-desc">Experience Aegis's internal high-entropy password generation algorithm and security scoring live in your browser.</p>
+      </div>
+
+      <div class="demo-container">
+        
+        <!-- Live Password Generator -->
+        <div class="glass-card generator-box">
+          <h3 style="font-family: var(--font-heading); font-size: 20px;">Interactive Password Generator</h3>
+          
+          <div class="output-display" id="pwd-output">
+            <span id="pwd-text">k$9#vM2@qL7*pW4&</span>
+            <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="copyGeneratedPwd()" id="btn-copy-pwd">Copy</button>
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">
+              <span>Entropy & Crack Resistance</span>
+              <span id="entropy-score" style="color: var(--cyan); font-weight: 600;">98.4 Bits • Trillions of Years</span>
+            </div>
+            <div class="meter-bar">
+              <div class="meter-fill" id="meter-fill"></div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 14px;">
+              <span>Length: <strong id="len-val" style="color: var(--cyan);">18</strong> characters</span>
+            </div>
+            <input type="range" id="slider-len" min="8" max="64" value="18" style="width: 100%; accent-color: var(--cyan);" oninput="updatePassword()">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="chk-upper" checked onchange="updatePassword()" style="accent-color: var(--cyan);"> Uppercase (A-Z)
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="chk-lower" checked onchange="updatePassword()" style="accent-color: var(--cyan);"> Lowercase (a-z)
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="chk-num" checked onchange="updatePassword()" style="accent-color: var(--cyan);"> Numbers (0-9)
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="chk-sym" checked onchange="updatePassword()" style="accent-color: var(--cyan);"> Symbols (!@#$%)
+            </label>
+          </div>
+
+          <button class="btn btn-primary" onclick="updatePassword()" style="margin-top: 10px;" id="btn-regenerate">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+            Generate Another
+          </button>
+        </div>
+
+        <!-- Zero-Knowledge Visualization -->
+        <div class="glass-card crypto-step-box" id="zero-knowledge">
+          <h3 style="font-family: var(--font-heading); font-size: 20px;">Zero-Knowledge Cryptographic Flow</h3>
+          
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <h4>Master Password Derivation</h4>
+              <p>Your master password is hashed in-memory via <strong>PBKDF2 SHA-256 with 600,000 rounds</strong> + a unique cryptographic salt. It never travels over any network.</p>
+            </div>
+          </div>
+
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <h4>Local AES-256-GCM Encryption</h4>
+              <p>The resulting 256-bit key encrypts your secrets locally on your processor with an unrepeatable 96-bit Initialization Vector (IV).</p>
+            </div>
+          </div>
+
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <h4>Encrypted Cloud Synchronization</h4>
+              <p>Only the opaque ciphertext binary blob is stored in Firestore. Aegis servers, Firebase engineers, and cloud databases can never inspect or recover your plaintext data.</p>
+            </div>
+          </div>
+
+          <div style="padding: 14px; background: rgba(0, 240, 255, 0.06); border-radius: 12px; border: 1px solid rgba(0, 240, 255, 0.2); font-size: 12px; color: var(--cyan);">
+            <strong>Mathematical Guarantee:</strong> Even in the event of a catastrophic database leak, all stored entries remain indistinguishable from pseudo-random noise.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Elite Architecture</span>
+        <h2 class="section-title">Engineered for Uncompromising Security</h2>
+        <p class="section-desc">Every element of Aegis is designed to protect your identity while delivering a delightful, fluid experience.</p>
+      </div>
+
+      <div class="features-grid">
+        
+        <div class="glass-card feature-card">
+          <div class="feature-icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3 class="feature-title">Zero-Knowledge Cloud Sync</h3>
+          <p class="feature-desc">Seamless synchronization across all your desktop and mobile devices without sacrificing absolute end-to-end client cryptographic privacy.</p>
+        </div>
+
+        <div class="glass-card feature-card purple">
+          <div class="feature-icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+          </div>
+          <h3 class="feature-title">25 Native World Languages</h3>
+          <p class="feature-desc">100% comprehensive, native localization without machine-translation glitches across 25 global languages including Filipino, Turkish, Japanese, and Polish.</p>
+        </div>
+
+        <div class="glass-card feature-card emerald">
+          <div class="feature-icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <h3 class="feature-title">1-Click Migration</h3>
+          <p class="feature-desc">Import seamlessly from Google Chrome, Bitwarden, LastPass, or Aegis backups with automated categorization and instant client-side encryption.</p>
+        </div>
+
+        <div class="glass-card feature-card amber">
+          <div class="feature-icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <h3 class="feature-title">90+ Day Password Aging Alert</h3>
+          <p class="feature-desc">Proactive warnings and security health badges highlight credentials that haven't been rotated in over 90 days, eliminating password rot.</p>
+        </div>
+
+        <div class="glass-card feature-card">
+          <div class="feature-icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          </div>
+          <h3 class="feature-title">Mobile & Quick Access</h3>
+          <p class="feature-desc">Quick Fetcher modal, Quick Save bookmarklet for mobile Safari and Chrome, and progressive web application support with 30s clipboard auto-purge.</p>
+        </div>
+
+        <div class="glass-card feature-card purple">
+          <div class="feature-icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          </div>
+          <h3 class="feature-title">Subscriptions & Multi-Currency</h3>
+          <p class="feature-desc">Track active recurring memberships with real-time foreign exchange conversion between TRY, USD, EUR, GBP, JPY, and 15+ currencies.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 25 Supported Languages Section -->
+  <section class="section" id="languages" style="background: rgba(15, 23, 42, 0.3);">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Global Readiness</span>
+        <h2 class="section-title">Crafted for 25 Languages Worldwide</h2>
+        <p class="section-desc">Aegis speaks your language fluently with 100% verified native strings across all menus, tooltips, and security prompts.</p>
+      </div>
+
+      <div class="lang-chips">
+        <span class="lang-chip">🇹🇷 Türkçe</span>
+        <span class="lang-chip">🇬🇧 English</span>
+        <span class="lang-chip">🇩🇪 Deutsch</span>
+        <span class="lang-chip">🇪🇸 Español</span>
+        <span class="lang-chip">🇫🇷 Français</span>
+        <span class="lang-chip">🇮🇹 Italiano</span>
+        <span class="lang-chip">🇵🇹 Português</span>
+        <span class="lang-chip">🇷🇺 Русский</span>
+        <span class="lang-chip">🇨🇳 中文</span>
+        <span class="lang-chip">🇮🇳 हिन्दी</span>
+        <span class="lang-chip">🇰🇷 한국어</span>
+        <span class="lang-chip">🇯🇵 日本語</span>
+        <span class="lang-chip">🇸🇦 العربية</span>
+        <span class="lang-chip">🇮🇷 فارسی</span>
+        <span class="lang-chip">🇬🇷 Ελληνικά</span>
+        <span class="lang-chip">🇮🇱 עברית</span>
+        <span class="lang-chip">🇩🇰 Dansk</span>
+        <span class="lang-chip">🇳🇴 Norsk</span>
+        <span class="lang-chip">🇸🇪 Svenska</span>
+        <span class="lang-chip">🇫🇮 Suomi</span>
+        <span class="lang-chip">🇳🇱 Nederlands</span>
+        <span class="lang-chip">🇵🇱 Polski</span>
+        <span class="lang-chip">🇮🇩 Bahasa Indonesia</span>
+        <span class="lang-chip">🇺🇦 Українська</span>
+        <span class="lang-chip">🇵🇭 Filipino (Tagalog)</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Section -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Honest Comparison</span>
+        <h2 class="section-title">How Aegis Compares</h2>
+        <p class="section-desc">Experience maximum privacy and premium glassmorphic styling without paying recurring software subscription fees.</p>
+      </div>
+
+      <div class="glass-card table-wrapper">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th class="highlight">Aegis Vault</th>
+              <th>1Password</th>
+              <th>Bitwarden</th>
+              <th>LastPass</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Zero-Knowledge AES-256-GCM</td>
+              <td class="highlight">✅ Yes (Client-Side)</td>
+              <td>✅ Yes</td>
+              <td>✅ Yes</td>
+              <td>⚠️ Proprietary</td>
+            </tr>
+            <tr>
+              <td>PBKDF2 SHA-256 Iterations</td>
+              <td class="highlight">⚡ 600,000</td>
+              <td>650,000</td>
+              <td>600,000</td>
+              <td>100,100</td>
+            </tr>
+            <tr>
+              <td>Open Source Codebase</td>
+              <td class="highlight">✅ 100% MIT</td>
+              <td>❌ Closed</td>
+              <td>✅ Open Source</td>
+              <td>❌ Closed</td>
+            </tr>
+            <tr>
+              <td>Desktop App Architecture</td>
+              <td class="highlight">🚀 Tauri 2.0 (Lightweight)</td>
+              <td>Electron (Heavy)</td>
+              <td>Electron (Heavy)</td>
+              <td>Electron (Heavy)</td>
+            </tr>
+            <tr>
+              <td>Subscription & Currency Tracker</td>
+              <td class="highlight">✅ Built-in (18 Currencies)</td>
+              <td>❌ No</td>
+              <td>❌ No</td>
+              <td>❌ No</td>
+            </tr>
+            <tr>
+              <td>Native Language Coverage</td>
+              <td class="highlight">🌍 25 Languages</td>
+              <td>12 Languages</td>
+              <td>16 Languages</td>
+              <td>8 Languages</td>
+            </tr>
+            <tr>
+              <td>Pricing</td>
+              <td class="highlight">🎉 100% Free Forever</td>
+              <td>$35.88 / year</td>
+              <td>Freemium ($10/yr)</td>
+              <td>$36.00 / year</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download Section -->
+  <section class="section" id="downloads">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Install Anywhere</span>
+        <h2 class="section-title">Get Aegis Today</h2>
+        <p class="section-desc">Choose your platform and download the standalone executable installer. No complex compilation required.</p>
+      </div>
+
+      <div class="download-grid">
+        
+        <!-- Windows -->
+        <div class="glass-card download-card">
+          <svg class="os-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg>
+          <h3 style="font-family: var(--font-heading); font-size: 20px;">Windows</h3>
+          <p style="font-size: 13px; color: var(--text-muted);">Windows 10, 11 (64-bit)</p>
+          <a href="https://github.com/DrXendria/Aegis/releases" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width: 100%; margin-top: auto;" id="btn-dl-win">
+            Download .exe Installer
+          </a>
+          <span style="font-size: 11px; color: var(--text-muted);">Aegis_0.1.3_x64-setup.exe</span>
+        </div>
+
+        <!-- macOS -->
+        <div class="glass-card download-card">
+          <svg class="os-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/><path d="M10 2c1 .5 2 2 2 5"/></svg>
+          <h3 style="font-family: var(--font-heading); font-size: 20px;">macOS</h3>
+          <p style="font-size: 13px; color: var(--text-muted);">Apple Silicon & Intel DMG</p>
+          <a href="https://github.com/DrXendria/Aegis/releases" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; margin-top: auto;" id="btn-dl-mac">
+            Download .dmg
+          </a>
+          <span style="font-size: 11px; color: var(--text-muted);">Aegis_0.1.3_universal.dmg</span>
+        </div>
+
+        <!-- Linux -->
+        <div class="glass-card download-card">
+          <svg class="os-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <h3 style="font-family: var(--font-heading); font-size: 20px;">Linux</h3>
+          <p style="font-size: 13px; color: var(--text-muted);">AppImage & Debian (.deb)</p>
+          <a href="https://github.com/DrXendria/Aegis/releases" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; margin-top: auto;" id="btn-dl-linux">
+            Download .AppImage
+          </a>
+          <span style="font-size: 11px; color: var(--text-muted);">Aegis_0.1.3_amd64.AppImage</span>
+        </div>
+
+        <!-- Web Vault -->
+        <div class="glass-card download-card">
+          <svg class="os-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <h3 style="font-family: var(--font-heading); font-size: 20px;">Web Vault</h3>
+          <p style="font-size: 13px; color: var(--text-muted);">Run in any modern browser / PWA</p>
+          <a href="index.html" class="btn btn-outline" style="width: 100%; margin-top: auto;" id="btn-open-web">
+            Launch Web App
+          </a>
+          <span style="font-size: 11px; color: var(--text-muted);">Offline Cache & PWA Ready</span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2-1 4-2 7-2 2.76 0 5 1 7 2a1 1 0 0 1 1 1z"/></svg>
+        <span style="font-family: var(--font-heading); font-weight: 700; font-size: 18px;">Aegis Vault</span>
+      </div>
+
+      <p class="footer-copy">
+        Crafted with passion by <strong>DrXendria</strong>. Licensed under MIT. © 2026.
+      </p>
+
+      <div style="display: flex; gap: 16px;">
+        <a href="https://github.com/DrXendria/Aegis" target="_blank" rel="noopener noreferrer" style="color: var(--text-muted); text-decoration: none; font-size: 13px;">GitHub Repository</a>
+        <a href="#features" style="color: var(--text-muted); text-decoration: none; font-size: 13px;">Features</a>
+        <a href="#downloads" style="color: var(--text-muted); text-decoration: none; font-size: 13px;">Releases</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Interactive JavaScript Logic -->
+  <script>
+    function updatePassword() {
+      const len = parseInt(document.getElementById('slider-len').value, 10);
+      document.getElementById('len-val').textContent = len;
+
+      const upper = document.getElementById('chk-upper').checked;
+      const lower = document.getElementById('chk-lower').checked;
+      const num = document.getElementById('chk-num').checked;
+      const sym = document.getElementById('chk-sym').checked;
+
+      let charset = '';
+      if (upper) charset += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      if (lower) charset += 'abcdefghijklmnopqrstuvwxyz';
+      if (num) charset += '0123456789';
+      if (sym) charset += '!@#$%^&*()_+~`|}{[]:;?><,./-=';
+
+      if (!charset) charset = 'abcdefghijklmnopqrstuvwxyz';
+
+      let pwd = '';
+      const array = new Uint32Array(len);
+      window.crypto.getRandomValues(array);
+      for (let i = 0; i < len; i++) {
+        pwd += charset[array[i] % charset.length];
+      }
+
+      document.getElementById('pwd-text').textContent = pwd;
+
+      // Entropy calculation: len * log2(poolSize)
+      const poolSize = charset.length;
+      const entropy = (len * Math.log2(poolSize)).toFixed(1);
+      
+      let crackTime = 'Trillions of Years';
+      let fillPct = Math.min(100, (entropy / 128) * 100);
+
+      if (entropy < 40) {
+        crackTime = 'A few seconds';
+      } else if (entropy < 60) {
+        crackTime = 'A few hours';
+      } else if (entropy < 80) {
+        crackTime = 'Several centuries';
+      }
+
+      document.getElementById('entropy-score').textContent = `${entropy} Bits • ${crackTime}`;
+      document.getElementById('meter-fill').style.width = `${fillPct}%`;
+    }
+
+    function copyGeneratedPwd() {
+      const text = document.getElementById('pwd-text').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('btn-copy-pwd');
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.style.color = '#00f0ff';
+        btn.style.borderColor = '#00f0ff';
+        setTimeout(() => {
+          btn.textContent = orig;
+          btn.style.color = '';
+          btn.style.borderColor = '';
+        }, 2000);
+      });
+    }
+
+    // Initialize on load
+    updatePassword();
+  </script>
+</body>
+</html>

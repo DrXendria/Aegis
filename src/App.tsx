@@ -25,7 +25,7 @@ function App() {
       ) : (
         <Vault cryptoKey={cryptoKey} userId={userId} onLock={handleLock} />
       )}
-      <div style={{ position: 'fixed', bottom: '16px', width: '100%', textAlign: 'center', fontSize: '12px', color: 'rgba(255, 255, 255, 0.3)', pointerEvents: 'none', zIndex: 100, letterSpacing: '0.5px' }}>
+      <div className="developer-credit">
         {t('developed_by')}
       </div>
     </>
