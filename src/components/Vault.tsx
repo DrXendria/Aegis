@@ -30,7 +30,7 @@ const safeImpactFeedback = async (style: string) => {
 };
 
 import { db, auth } from '../firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, deleteDoc, deleteField, doc, getDoc, getDocs, setDoc, writeBatch } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 
 import {
@@ -65,6 +65,18 @@ interface PasswordEntry {
   currency?: string;
   paymentMethod?: string;
   renewalDate?: string;
+}
+
+interface EncryptedEntryDoc {
+  v: 2;
+  ciphertext: string;
+  iv: string;
+  updatedAt: number;
+}
+
+interface LocalEncryptedBackup {
+  savedAt: number;
+  entries: Record<string, EncryptedEntryDoc>;
 }
 
 const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
@@ -127,75 +139,435 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [inlineNameInput, setInlineNameInput] = useState('');
   
+  const [isVaultLoading, setIsVaultLoading] = useState(true);
+  const [isVaultLoaded, setIsVaultLoaded] = useState(false);
+  const [vaultLoadError, setVaultLoadError] = useState<string | null>(null);
+  const [decryptionFailedCount, setDecryptionFailedCount] = useState(0);
+  const [localBackupMeta, setLocalBackupMeta] = useState<{ count: number; savedAt: number } | null>(null);
+  const [diskBackupMeta, setDiskBackupMeta] = useState<{ savedAt: number; path: string } | null>(null);
+
+  const localBackupKey = `aegis_local_backup_${userId}`;
+  const diskBackupKey = `aegis_disk_backup_${userId}`;
+  const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
+
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  useEffect(() => {
-    const fetchVault = async () => {
-      try {
-        const docRef = doc(db, 'vaults', userId);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setEntries(data.entries || []);
-          setUserName(data.userName || '');
-          setBaseCurrency(data.baseCurrency || 'TRY');
-          const rawCats = data.customCategories || [];
-          const normalizedCats: CustomCategory[] = rawCats.map((c: any) => 
-            typeof c === 'string' ? { id: c, name: c } : c
-          );
-          setCustomCategories(normalizedCats);
-        }
-      } catch (err) {
-        console.error("Failed to fetch vault", err);
+  const readLocalBackup = (): LocalEncryptedBackup | null => {
+    try {
+      const raw = localStorage.getItem(localBackupKey);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as LocalEncryptedBackup;
+      if (parsed && parsed.entries && typeof parsed.entries === 'object') {
+        return parsed;
       }
-    };
-    fetchVault();
+      return null;
+    } catch {
+      return null;
+    }
+  };
 
+  const writeLocalBackup = (entriesMap: Record<string, EncryptedEntryDoc>) => {
+    try {
+      const payload: LocalEncryptedBackup = {
+        savedAt: Date.now(),
+        entries: entriesMap
+      };
+      localStorage.setItem(localBackupKey, JSON.stringify(payload));
+      setLocalBackupMeta({
+        count: Object.keys(entriesMap).length,
+        savedAt: payload.savedAt
+      });
+    } catch (e) {
+      console.warn("Could not write local encrypted backup", e);
+    }
+  };
+
+  const encryptEntryForCloud = async (entry: PasswordEntry): Promise<EncryptedEntryDoc> => {
+    const { plaintextPassword, ...safeEntry } = entry;
+    const cleanPayload = JSON.parse(JSON.stringify(safeEntry));
+    const encrypted = await encryptData(JSON.stringify(cleanPayload), cryptoKey);
+    return {
+      v: 2,
+      ciphertext: encrypted.ciphertext,
+      iv: encrypted.iv,
+      updatedAt: Date.now()
+    };
+  };
+
+  const decryptEntryFromCloud = async (entryId: string, raw: EncryptedEntryDoc): Promise<PasswordEntry> => {
+    const decryptedJson = await decryptData(raw.ciphertext, raw.iv, cryptoKey);
+    const parsed = JSON.parse(decryptedJson) as PasswordEntry;
+    return {
+      ...parsed,
+      id: parsed.id || entryId
+    };
+  };
+
+  const fetchVault = async () => {
+    setIsVaultLoading(true);
+    setVaultLoadError(null);
+    setDecryptionFailedCount(0);
+
+    const existingBackup = readLocalBackup();
+    if (existingBackup) {
+      setLocalBackupMeta({
+        count: Object.keys(existingBackup.entries).length,
+        savedAt: existingBackup.savedAt
+      });
+    }
+
+    try {
+      const vaultDocRef = doc(db, 'vaults', userId);
+      const entriesColRef = collection(db, 'vaults', userId, 'entries');
+      const [docSnap, entriesSnap] = await Promise.all([
+        getDoc(vaultDocRef),
+        getDocs(entriesColRef)
+      ]);
+
+      let legacyEntries: PasswordEntry[] = [];
+      let alreadyMigrated = false;
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setUserName(data.userName || '');
+        setBaseCurrency(data.baseCurrency || 'TRY');
+        const rawCats = data.customCategories || [];
+        const normalizedCats: CustomCategory[] = rawCats.map((c: any) =>
+          typeof c === 'string' ? { id: c, name: c } : c
+        );
+        setCustomCategories(normalizedCats);
+        alreadyMigrated = Boolean(data.migratedV2);
+        if (Array.isArray(data.entries) && data.entries.length > 0) {
+          legacyEntries = data.entries;
+        }
+      }
+
+      const decryptedEntries: PasswordEntry[] = [];
+      const encryptedMap: Record<string, EncryptedEntryDoc> = {};
+      let failedCount = 0;
+
+      for (const entryDoc of entriesSnap.docs) {
+        const raw = entryDoc.data() as EncryptedEntryDoc;
+        if (raw && raw.ciphertext && raw.iv) {
+          encryptedMap[entryDoc.id] = {
+            v: 2,
+            ciphertext: raw.ciphertext,
+            iv: raw.iv,
+            updatedAt: raw.updatedAt || Date.now()
+          };
+          try {
+            const decrypted = await decryptEntryFromCloud(entryDoc.id, raw);
+            decryptedEntries.push(decrypted);
+          } catch (e) {
+            console.error("Entry decryption failed:", entryDoc.id, e);
+            failedCount += 1;
+          }
+        }
+      }
+
+      // One-time migration from legacy vaults/{userId}.entries array to encrypted subcollection
+      if (entriesSnap.empty && legacyEntries.length > 0 && !alreadyMigrated) {
+        const migratedMap: Record<string, EncryptedEntryDoc> = {};
+        for (let i = 0; i < legacyEntries.length; i += 450) {
+          const chunk = legacyEntries.slice(i, i + 450);
+          const batch = writeBatch(db);
+          for (const item of chunk) {
+            const entryId = item.id || `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+            const normalizedItem: PasswordEntry = { ...item, id: entryId };
+            const encryptedDoc = await encryptEntryForCloud(normalizedItem);
+            migratedMap[entryId] = encryptedDoc;
+            decryptedEntries.push(normalizedItem);
+            batch.set(doc(db, 'vaults', userId, 'entries', entryId), encryptedDoc);
+          }
+          await batch.commit();
+        }
+        await setDoc(vaultDocRef, { entries: deleteField(), migratedV2: true, updatedAt: Date.now() }, { merge: true });
+        if (Object.keys(migratedMap).length > 0) {
+          writeLocalBackup(migratedMap);
+        }
+      } else if (Object.keys(encryptedMap).length > 0) {
+        // Only refresh local encrypted backup when cloud actually has entries
+        writeLocalBackup(encryptedMap);
+      }
+
+      setEntries(decryptedEntries);
+      setDecryptionFailedCount(failedCount);
+      setIsVaultLoaded(true);
+    } catch (err: any) {
+      console.error("Failed to fetch vault", err);
+      setIsVaultLoaded(false);
+      setVaultLoadError(err?.message || "Kasa verileri buluttan yüklenemedi.");
+    } finally {
+      setIsVaultLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setIsVaultLoaded(false);
+    fetchVault();
+  }, [userId]);
+
+  useEffect(() => {
     fetch(`https://api.exchangerate-api.com/v4/latest/${baseCurrency}`)
       .then(res => res.json())
       .then(data => {
         if(data && data.rates) setExchangeRates(data.rates);
       })
       .catch(() => console.error("Could not fetch exchange rates"));
-  }, [userId, baseCurrency]);
+  }, [baseCurrency]);
 
-  const saveVault = async (
-    newEntries: PasswordEntry[], 
-    nameToSave?: string, 
-    currencyToSave?: string,
-    categoriesToSave?: CustomCategory[]
-  ) => {
-    const finalName = nameToSave !== undefined ? nameToSave : userName;
-    const finalCurrency = currencyToSave !== undefined ? currencyToSave : baseCurrency;
-    const finalCategories = categoriesToSave !== undefined ? categoriesToSave : customCategories;
-    setEntries(newEntries);
-    if (nameToSave !== undefined) setUserName(nameToSave);
-    if (categoriesToSave !== undefined) setCustomCategories(categoriesToSave);
-    
+  const saveVaultPatch = async (patch: {
+    userName?: string;
+    baseCurrency?: string;
+    customCategories?: CustomCategory[];
+  }) => {
+    if (!isVaultLoaded) {
+      alert("Kasa verileri henüz yüklenmediği için kaydetme işlemi güvenlik amacıyla engellendi.");
+      return;
+    }
+    if (patch.userName !== undefined) setUserName(patch.userName);
+    if (patch.baseCurrency !== undefined) setBaseCurrency(patch.baseCurrency);
+    if (patch.customCategories !== undefined) setCustomCategories(patch.customCategories);
+
     try {
       const docRef = doc(db, 'vaults', userId);
-      const secureEntries = newEntries.map(entry => {
-        const { plaintextPassword, ...safeEntry } = entry;
-        return safeEntry;
-      });
-      
-      const cleanData = JSON.parse(JSON.stringify({ 
-        entries: secureEntries, 
-        userName: finalName, 
-        baseCurrency: finalCurrency,
-        customCategories: finalCategories
-      }));
-      
-      await setDoc(docRef, cleanData, { merge: true });
+      const cleanPatch = JSON.parse(JSON.stringify({ ...patch, updatedAt: Date.now() }));
+      await setDoc(docRef, { ...cleanPatch, entries: deleteField() }, { merge: true });
     } catch (err: any) {
-      console.error("Failed to save vault to cloud", err);
+      console.error("Failed to save vault settings to cloud", err);
       alert("Hata (Kaydedilemedi): " + err.message);
     }
   };
+
+  const saveSingleEntry = async (entry: PasswordEntry) => {
+    if (!isVaultLoaded) {
+      alert("Kasa verileri henüz yüklenmediği için kaydetme işlemi güvenlik amacıyla engellendi.");
+      return false;
+    }
+    try {
+      const encryptedDoc = await encryptEntryForCloud(entry);
+      const entryRef = doc(db, 'vaults', userId, 'entries', entry.id);
+      await setDoc(entryRef, encryptedDoc);
+
+      setEntries(prev => {
+        const exists = prev.some(e => e.id === entry.id);
+        return exists ? prev.map(e => (e.id === entry.id ? entry : e)) : [...prev, entry];
+      });
+
+      const currentBackup = readLocalBackup()?.entries || {};
+      writeLocalBackup({ ...currentBackup, [entry.id]: encryptedDoc });
+      return true;
+    } catch (err: any) {
+      console.error("Failed to save entry to cloud", err);
+      alert("Hata (Kaydedilemedi): " + err.message);
+      return false;
+    }
+  };
+
+  const saveMultipleEntries = async (entriesToSave: PasswordEntry[]) => {
+    if (!isVaultLoaded) {
+      alert("Kasa verileri henüz yüklenmediği için kaydetme işlemi güvenlik amacıyla engellendi.");
+      return false;
+    }
+    if (entriesToSave.length === 0) return true;
+    try {
+      const updatedMap: Record<string, EncryptedEntryDoc> = { ...(readLocalBackup()?.entries || {}) };
+      for (let i = 0; i < entriesToSave.length; i += 450) {
+        const chunk = entriesToSave.slice(i, i + 450);
+        const batch = writeBatch(db);
+        for (const entry of chunk) {
+          const encryptedDoc = await encryptEntryForCloud(entry);
+          updatedMap[entry.id] = encryptedDoc;
+          batch.set(doc(db, 'vaults', userId, 'entries', entry.id), encryptedDoc);
+        }
+        await batch.commit();
+      }
+
+      setEntries(prev => {
+        const byId = new Map(prev.map(e => [e.id, e]));
+        for (const item of entriesToSave) {
+          byId.set(item.id, item);
+        }
+        return Array.from(byId.values());
+      });
+
+      writeLocalBackup(updatedMap);
+      return true;
+    } catch (err: any) {
+      console.error("Failed to batch save entries to cloud", err);
+      alert("Hata (Kaydedilemedi): " + err.message);
+      return false;
+    }
+  };
+
+  const deleteSingleEntry = async (id: string) => {
+    if (!isVaultLoaded) {
+      alert("Kasa verileri henüz yüklenmediği için silme işlemi güvenlik amacıyla engellendi.");
+      return false;
+    }
+    try {
+      await deleteDoc(doc(db, 'vaults', userId, 'entries', id));
+      setEntries(prev => prev.filter(e => e.id !== id));
+      const currentBackup = { ...(readLocalBackup()?.entries || {}) };
+      delete currentBackup[id];
+      writeLocalBackup(currentBackup);
+      return true;
+    } catch (err: any) {
+      console.error("Failed to delete entry from cloud", err);
+      alert("Hata (Silinemedi): " + err.message);
+      return false;
+    }
+  };
+
+  const deleteAllEntries = async () => {
+    if (!isVaultLoaded) {
+      alert("Kasa verileri henüz yüklenmediği için silme işlemi güvenlik amacıyla engellendi.");
+      return false;
+    }
+    try {
+      const ids = entries.map(e => e.id);
+      for (let i = 0; i < ids.length; i += 450) {
+        const chunk = ids.slice(i, i + 450);
+        const batch = writeBatch(db);
+        for (const id of chunk) {
+          batch.delete(doc(db, 'vaults', userId, 'entries', id));
+        }
+        await batch.commit();
+      }
+      setEntries([]);
+      writeLocalBackup({});
+      return true;
+    } catch (err: any) {
+      console.error("Failed to clear entries", err);
+      alert("Hata (Silinemedi): " + err.message);
+      return false;
+    }
+  };
+
+  const handleRestoreLocalBackup = async () => {
+    const backup = readLocalBackup();
+    if (!backup || Object.keys(backup.entries).length === 0) {
+      showToast("Bu cihazda geri yüklenecek yerel şifreli yedek bulunamadı.");
+      return;
+    }
+    const restored: PasswordEntry[] = [];
+    let failed = 0;
+    for (const [entryId, encDoc] of Object.entries(backup.entries)) {
+      try {
+        const decrypted = await decryptEntryFromCloud(entryId, encDoc);
+        restored.push(decrypted);
+      } catch {
+        failed += 1;
+      }
+    }
+    if (restored.length === 0) {
+      alert("Yerel yedek çözülemedi. Ana şifrenizin doğru olduğundan emin olun.");
+      return;
+    }
+    const ok = await saveMultipleEntries(restored);
+    if (ok) {
+      showToast(`✅ ${restored.length} kayıt yerel şifreli yedekten geri yüklendi!${failed > 0 ? ` (${failed} kayıt çözülemedi)` : ''}`);
+    }
+  };
+
+  const saveEncryptedBackupToDisk = async (isAuto = false) => {
+    const backup = readLocalBackup();
+    const entriesMap: Record<string, EncryptedEntryDoc> = backup?.entries ? { ...backup.entries } : {};
+
+    if (Object.keys(entriesMap).length === 0 && entries.length > 0) {
+      for (const entry of entries) {
+        entriesMap[entry.id] = await encryptEntryForCloud(entry);
+      }
+    }
+
+    if (Object.keys(entriesMap).length === 0) {
+      if (!isAuto) showToast("Yedeklenecek kayıt bulunamadı.");
+      return;
+    }
+
+    const dateStamp = new Date().toISOString().split('T')[0];
+    const filename = `aegis-auto-backup-${dateStamp}.json`;
+    const payload = JSON.stringify(
+      {
+        appName: "Aegis Vault",
+        format: "aegis-encrypted-v2",
+        exportedAt: new Date().toISOString(),
+        totalEntries: Object.keys(entriesMap).length,
+        customCategories,
+        encryptedEntries: entriesMap
+      },
+      null,
+      2
+    );
+
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const savedPath = await invoke<string>('save_encrypted_backup', {
+        filename,
+        content: payload
+      });
+      const meta = { savedAt: Date.now(), path: savedPath };
+      localStorage.setItem(diskBackupKey, JSON.stringify(meta));
+      setDiskBackupMeta(meta);
+      showToast(
+        isAuto
+          ? `💾 2 haftalık otomatik şifreli yedek kaydedildi`
+          : `💾 Şifreli yedek kaydedildi: ${savedPath}`
+      );
+    } catch (err) {
+      if (!isAuto) {
+        // Fallback to browser download if not running inside Tauri desktop
+        const blob = new Blob([payload], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        const meta = { savedAt: Date.now(), path: filename };
+        localStorage.setItem(diskBackupKey, JSON.stringify(meta));
+        setDiskBackupMeta(meta);
+        showToast("💾 Şifreli yedek dosyası indirildi!");
+      } else {
+        console.warn("Auto disk backup skipped (non-Tauri environment or FS error):", err);
+      }
+    }
+  };
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(diskBackupKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed.savedAt === 'number') {
+          setDiskBackupMeta(parsed);
+        }
+      }
+    } catch {}
+  }, [diskBackupKey]);
+
+  // Automatically create an encrypted backup on disk every 2 weeks when vault has entries
+  useEffect(() => {
+    if (!isVaultLoaded || entries.length === 0) return;
+    let lastSavedAt = 0;
+    try {
+      const raw = localStorage.getItem(diskBackupKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed.savedAt === 'number') {
+          lastSavedAt = parsed.savedAt;
+        }
+      }
+    } catch {}
+
+    if (Date.now() - lastSavedAt >= TWO_WEEKS_MS) {
+      saveEncryptedBackupToDisk(true);
+    }
+  }, [isVaultLoaded, entries.length]);
 
   // Check password aging (> 90 days)
   const isPasswordOld = (entry: PasswordEntry): boolean => {
@@ -334,9 +706,11 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
         newEntry.isFavorite = existing.isFavorite;
         newEntry.plaintextPassword = secretData || existing.plaintextPassword;
       }
-      await saveVault(entries.map(e => e.id === editingId ? newEntry : e));
+      const ok = await saveSingleEntry(newEntry);
+      if (!ok) return;
     } else {
-      await saveVault([...entries, newEntry]);
+      const ok = await saveSingleEntry(newEntry);
+      if (!ok) return;
     }
     tryHaptic(() => safeNotificationFeedback('success'));
     closeModal();
@@ -392,8 +766,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
   const handleDelete = async (id: string) => {
     if (window.confirm(t("delete_confirm"))) {
       tryHaptic(() => safeImpactFeedback('medium'));
-      const newEntries = entries.filter(e => e.id !== id);
-      await saveVault(newEntries);
+      await deleteSingleEntry(id);
     }
   };
 
@@ -418,10 +791,9 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
   };
 
   const toggleFavorite = async (id: string) => {
-    const updatedEntries = entries.map(entry => 
-      entry.id === id ? { ...entry, isFavorite: !entry.isFavorite } : entry
-    );
-    await saveVault(updatedEntries);
+    const target = entries.find(entry => entry.id === id);
+    if (!target) return;
+    await saveSingleEntry({ ...target, isFavorite: !target.isFavorite });
   };
 
   const handleSignOut = async () => {
@@ -439,11 +811,12 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
   };
 
   const finishInlineEdit = async () => {
+    if (!isEditingName) return;
     setIsEditingName(false);
     const newName = inlineNameInput.trim();
     if (newName !== userName) {
       try {
-        await saveVault(entries, newName);
+        await saveVaultPatch({ userName: newName });
         const fallback = i18n.language === 'en' ? 'Name saved successfully:' : 'İsim başarıyla kaydedildi:';
         showToast(`${i18n.exists('name_saved_success') ? t('name_saved_success') : fallback} ${newName}`);
       } catch (err) {
@@ -478,7 +851,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
       name: trimmed
     };
     const updated = [...customCategories, newCat];
-    await saveVault(entries, userName, baseCurrency, updated);
+    await saveVaultPatch({ customCategories: updated });
     showToast(`${t("category_added") || "Kategori başarıyla eklendi"}: ${trimmed}`);
     return newCat.id;
   };
@@ -490,10 +863,15 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
       return;
     }
     const updatedCats = customCategories.filter(c => c.id !== catId);
-    const updatedEntries = entries.map(e => e.category === catId ? { ...e, category: 'other' } : e);
+    const affectedEntries = entries
+      .filter(e => e.category === catId)
+      .map(e => ({ ...e, category: 'other' }));
     if (selectedCategoryFilter === catId) setSelectedCategoryFilter('all');
     if (newCategory === catId) setNewCategory('other');
-    await saveVault(updatedEntries, userName, baseCurrency, updatedCats);
+    await saveVaultPatch({ customCategories: updatedCats });
+    if (affectedEntries.length > 0) {
+      await saveMultipleEntries(affectedEntries);
+    }
     showToast(t("category_deleted") || "Kategori silindi");
   };
 
@@ -555,6 +933,16 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
       if (file.name.endsWith('.json') || content.trim().startsWith('{') || content.trim().startsWith('[')) {
         try {
           const parsed = JSON.parse(content);
+          if (parsed && parsed.format === 'aegis-encrypted-v2' && parsed.encryptedEntries && typeof parsed.encryptedEntries === 'object') {
+            for (const [entryId, encDoc] of Object.entries(parsed.encryptedEntries as Record<string, EncryptedEntryDoc>)) {
+              try {
+                const decrypted = await decryptEntryFromCloud(entryId, encDoc);
+                newImported.push(decrypted);
+              } catch (e) {
+                console.error("Encrypted backup entry decryption failed:", entryId, e);
+              }
+            }
+          }
           const items = Array.isArray(parsed) ? parsed : (parsed.entries || parsed.items || []);
           for (const item of items) {
             if (item.login && item.name) {
@@ -679,10 +1067,11 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
       }
 
       if (newImported.length > 0) {
-        const combined = [...entries, ...newImported];
-        await saveVault(combined);
-        tryHaptic(() => safeNotificationFeedback('success'));
-        showToast(`✅ ${newImported.length} ${t("import_success") || "şifre başarıyla içe aktarıldı!"}`);
+        const ok = await saveMultipleEntries(newImported);
+        if (ok) {
+          tryHaptic(() => safeNotificationFeedback('success'));
+          showToast(`✅ ${newImported.length} ${t("import_success") || "şifre başarıyla içe aktarıldı!"}`);
+        }
       } else {
         alert("Geçerli bir şifre formatı (CSV veya JSON) bulunamadı. Lütfen dosyanızı kontrol edin.");
       }
@@ -744,8 +1133,10 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
       showToast("İşlem iptal edildi.");
       return;
     }
-    await saveVault([]);
-    showToast("Tüm veriler kalıcı olarak temizlendi.");
+    const ok = await deleteAllEntries();
+    if (ok) {
+      showToast("Tüm veriler kalıcı olarak temizlendi.");
+    }
   };
 
   const filteredEntries = useMemo(() => {
@@ -910,8 +1301,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
                 ]}
                 value={baseCurrency}
                 onChange={(val) => {
-                  setBaseCurrency(val);
-                  saveVault(entries, userName, val);
+                  saveVaultPatch({ baseCurrency: val });
                 }}
                 width="160px"
               />
@@ -1112,6 +1502,61 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
             </button>
           </div>
 
+          {/* Automatic Local Encrypted Backup Card */}
+          <div className="glass-panel flex-col gap-6" style={{ padding: '32px', borderLeft: '4px solid #22c55e' }}>
+            <div>
+              <div className="flex-center gap-2" style={{ justifyContent: 'flex-start', marginBottom: '8px' }}>
+                <Database size={22} style={{ color: '#22c55e' }} />
+                <h3 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>Otomatik Yerel Şifreli Yedek</h3>
+              </div>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
+                Her değişiklikte kasanızın AES-256-GCM ile şifrelenmiş bir kopyası otomatik olarak bu cihazda saklanır. Bulut verisi silinirse tek tıkla geri yükleyebilirsiniz.
+              </p>
+              {localBackupMeta && localBackupMeta.count > 0 ? (
+                <p style={{ color: '#22c55e', fontSize: '13px', marginTop: '10px', marginBottom: 0 }}>
+                  Son yedek: <strong>{localBackupMeta.count} kayıt</strong> ({new Date(localBackupMeta.savedAt).toLocaleString(i18n.language)})
+                </p>
+              ) : (
+                <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '10px', marginBottom: 0 }}>
+                  Henüz bu cihazda yerel şifreli yedek bulunmuyor.
+                </p>
+              )}
+            </div>
+
+            <button
+              onClick={handleRestoreLocalBackup}
+              disabled={!localBackupMeta || localBackupMeta.count === 0}
+              className="neon-btn flex-center gap-2 w-full"
+              style={{ justifyContent: 'center', padding: '16px', fontSize: '15px', opacity: (!localBackupMeta || localBackupMeta.count === 0) ? 0.5 : 1 }}
+            >
+              <Database size={18} /> Yerel Şifreli Yedekten Geri Yükle
+            </button>
+
+            <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '16px' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: '0 0 8px 0' }}>
+                <strong>2 Haftalık Otomatik Disk Yedeği:</strong> Uygulama açıldığında 14 günde bir <code style={{ fontSize: '12px' }}>Belgeler/Aegis-Backups</code> klasörüne şifreli JSON yedeği kaydedilir.
+              </p>
+              {diskBackupMeta ? (
+                <p style={{ color: '#22c55e', fontSize: '12px', margin: '0 0 12px 0', wordBreak: 'break-all' }}>
+                  Son disk yedeği: {new Date(diskBackupMeta.savedAt).toLocaleString(i18n.language)} — Sonraki: {new Date(diskBackupMeta.savedAt + TWO_WEEKS_MS).toLocaleDateString(i18n.language)}<br />
+                  Konum: {diskBackupMeta.path}
+                </p>
+              ) : (
+                <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: '0 0 12px 0' }}>
+                  Henüz bilgisayara otomatik şifreli yedek alınmadı (kayıt eklediğinizde otomatik alınır).
+                </p>
+              )}
+              <button
+                onClick={() => saveEncryptedBackupToDisk(false)}
+                disabled={entries.length === 0}
+                className="neon-btn flex-center gap-2 w-full"
+                style={{ justifyContent: 'center', padding: '12px', fontSize: '14px', opacity: entries.length === 0 ? 0.5 : 1 }}
+              >
+                <Save size={16} /> Şimdi Bilgisayara Şifreli Yedek Al
+              </button>
+            </div>
+          </div>
+
           {/* Danger Zone */}
           <div className="glass-panel flex-col gap-6" style={{ padding: '32px', borderColor: 'rgba(239, 68, 68, 0.3)' }}>
             <div>
@@ -1155,6 +1600,49 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
         }
         return e.category === selectedCategoryFilter;
       });
+    }
+
+    if (isVaultLoading) {
+      return (
+        <div className="glass-panel flex-col flex-center" style={{ padding: '64px 24px', opacity: 0.8, marginTop: '24px' }}>
+          <Shield size={42} style={{ marginBottom: '16px', color: 'var(--accent-primary)' }} />
+          <p style={{ color: 'var(--text-secondary)' }}>Kasa verileri yükleniyor...</p>
+        </div>
+      );
+    }
+
+    if (vaultLoadError) {
+      return (
+        <div className="glass-panel flex-col flex-center" style={{ padding: '48px 24px', marginTop: '24px', borderColor: 'rgba(239, 68, 68, 0.35)' }}>
+          <AlertTriangle size={44} style={{ marginBottom: '14px', color: 'var(--accent-danger)' }} />
+          <p style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '8px', textAlign: 'center' }}>
+            Kasa verileri buluttan yüklenemedi
+          </p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '20px', textAlign: 'center', maxWidth: '420px' }}>
+            {vaultLoadError}
+          </p>
+          <button onClick={fetchVault} className="neon-btn primary" style={{ padding: '10px 20px' }}>
+            Tekrar Dene
+          </button>
+        </div>
+      );
+    }
+
+    if (decryptionFailedCount > 0 && entries.length === 0) {
+      return (
+        <div className="glass-panel flex-col flex-center" style={{ padding: '48px 24px', marginTop: '24px', borderColor: 'rgba(239, 68, 68, 0.35)' }}>
+          <AlertTriangle size={44} style={{ marginBottom: '14px', color: 'var(--accent-danger)' }} />
+          <p style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '8px', textAlign: 'center' }}>
+            {decryptionFailedCount} kayıt çözülemedi — Ana şifreniz yanlış olabilir
+          </p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '20px', textAlign: 'center', maxWidth: '420px' }}>
+            Kayıtlarınız uçtan uca şifrelidir. Lütfen kasayı kilitleyip doğru Ana Şifre (Master Password) ile tekrar giriş yapın.
+          </p>
+          <button onClick={onLock} className="neon-btn primary" style={{ padding: '10px 20px' }}>
+            Kilitle ve Tekrar Giriş Yap
+          </button>
+        </div>
+      );
     }
 
     if (displayEntries.length === 0) {

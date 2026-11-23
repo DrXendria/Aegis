@@ -32,6 +32,25 @@ export const deriveKeyFromMasterPassword = async (password: string, salt: Uint8A
   );
 };
 
+const bytesToBase64 = (bytes: Uint8Array): string => {
+  let binary = "";
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+  return btoa(binary);
+};
+
+const base64ToBytes = (base64: string): Uint8Array => {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+};
+
 // Encrypt plaintext using the derived AES-GCM key
 export const encryptData = async (plaintext: string, key: CryptoKey): Promise<{ ciphertext: string, iv: string }> => {
   const iv = generateIV();
@@ -45,9 +64,9 @@ export const encryptData = async (plaintext: string, key: CryptoKey): Promise<{ 
     enc.encode(plaintext)
   );
 
-  // Convert buffer to base64
-  const ciphertext = btoa(String.fromCharCode(...new Uint8Array(encryptedBuf)));
-  const ivBase64 = btoa(String.fromCharCode(...iv));
+  // Convert buffer to base64 safely (chunked to avoid call stack overflow on large payloads)
+  const ciphertext = bytesToBase64(new Uint8Array(encryptedBuf));
+  const ivBase64 = bytesToBase64(iv);
 
   return { ciphertext, iv: ivBase64 };
 };
@@ -55,16 +74,16 @@ export const encryptData = async (plaintext: string, key: CryptoKey): Promise<{ 
 // Decrypt ciphertext using the derived AES-GCM key
 export const decryptData = async (ciphertextBase64: string, ivBase64: string, key: CryptoKey): Promise<string> => {
   try {
-    const iv = new Uint8Array(atob(ivBase64).split('').map(c => c.charCodeAt(0)));
-    const ciphertext = new Uint8Array(atob(ciphertextBase64).split('').map(c => c.charCodeAt(0)));
+    const iv = base64ToBytes(ivBase64);
+    const ciphertext = base64ToBytes(ciphertextBase64);
 
     const decryptedBuf = await window.crypto.subtle.decrypt(
       {
         name: "AES-GCM",
-        iv: iv,
+        iv: iv as BufferSource,
       },
       key,
-      ciphertext
+      ciphertext as BufferSource
     );
 
     const dec = new TextDecoder();
