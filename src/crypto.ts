@@ -51,6 +51,52 @@ const base64ToBytes = (base64: string): Uint8Array => {
   return bytes;
 };
 
+// Derive a PBKDF2-SHA256 hash for local Layer-1 account password verification
+export const hashPassword = async (
+  password: string,
+  saltBase64?: string
+): Promise<{ hash: string; salt: string }> => {
+  const salt = saltBase64 ? base64ToBytes(saltBase64) : generateSalt();
+  const enc = new TextEncoder();
+  const keyMaterial = await window.crypto.subtle.importKey(
+    "raw",
+    enc.encode(password),
+    { name: "PBKDF2" },
+    false,
+    ["deriveBits"]
+  );
+
+  const derivedBits = await window.crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt: salt as BufferSource,
+      iterations: 600000,
+      hash: "SHA-256",
+    },
+    keyMaterial,
+    256
+  );
+
+  return {
+    hash: bytesToBase64(new Uint8Array(derivedBits)),
+    salt: bytesToBase64(salt),
+  };
+};
+
+export const verifyPassword = async (
+  password: string,
+  expectedHash: string,
+  saltBase64: string
+): Promise<boolean> => {
+  const { hash } = await hashPassword(password, saltBase64);
+  if (hash.length !== expectedHash.length) return false;
+  let diff = 0;
+  for (let i = 0; i < hash.length; i++) {
+    diff |= hash.charCodeAt(i) ^ expectedHash.charCodeAt(i);
+  }
+  return diff === 0;
+};
+
 // Encrypt plaintext using the derived AES-GCM key
 export const encryptData = async (plaintext: string, key: CryptoKey): Promise<{ ciphertext: string, iv: string }> => {
   const iv = generateIV();

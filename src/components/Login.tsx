@@ -23,12 +23,18 @@ const safeBiometricAuthenticate = async (reason: string) => {
   return mod.authenticate(reason);
 };
 import { deriveKeyFromMasterPassword } from '../crypto';
-import { auth, db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import {
+  getActiveAccount,
+  readVaultFile,
+  registerLocalAccount,
+  signInLocalAccount,
+  signOutLocalAccount,
+  verifyOrInitMasterKey,
+  type LocalAccount
+} from '../localStore';
 
 interface LoginProps {
-  onUnlock: (key: CryptoKey, uid: string) => void;
+  onUnlock: (key: CryptoKey, account: LocalAccount) => void;
 }
 
 const Login: React.FC<LoginProps> = ({ onUnlock }) => {
@@ -37,51 +43,51 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
   const [email, setEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [showAuthPassword, setShowAuthPassword] = useState(false);
-  const [firebaseUser, setFirebaseUser] = useState<any>(null);
+  const [activeAccount, setActiveAccount] = useState<LocalAccount | null>(null);
   const [userName, setUserName] = useState('');
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [savedMasterPassword, setSavedMasterPassword] = useState('');
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setFirebaseUser(user);
-        setEmail(user.email || '');
-      } else {
-        setFirebaseUser(null);
+    const loadSession = async () => {
+      const account = await getActiveAccount();
+      if (account) {
+        setActiveAccount(account);
+        setEmail(account.email);
       }
-    });
+    };
+    loadSession();
     
     const checkBio = async () => {
       try {
         const status = await safeBiometricCheckStatus();
         if (status.isAvailable) {
           setBiometricAvailable(true);
+          const saved = localStorage.getItem('aegis_master');
+          if (saved) setSavedMasterPassword(saved);
+        } else {
+          localStorage.removeItem('aegis_master');
         }
       } catch (e) {
         console.warn("Biometrics not available or not supported on this platform.", e);
       }
     };
     checkBio();
-    
-    const saved = localStorage.getItem('aegis_master');
-    if (saved) setSavedMasterPassword(saved);
-    
-    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
     const fetchName = async () => {
-      if (firebaseUser) {
+      if (activeAccount) {
         try {
-          const docRef = doc(db, 'vaults', firebaseUser.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            if (docSnap.data().userName) setUserName(docSnap.data().userName);
-            if (docSnap.data().language && docSnap.data().language !== i18n.language) {
-              i18n.changeLanguage(docSnap.data().language);
-              localStorage.setItem('i18nextLng', docSnap.data().language);
+          const vault = await readVaultFile(activeAccount.id);
+          if (vault) {
+            if (vault.userName) setUserName(vault.userName);
+            if (vault.language && vault.language !== i18n.language) {
+              i18n.changeLanguage(vault.language);
+              localStorage.setItem('i18nextLng', vault.language);
             }
+          } else if (activeAccount.userName) {
+            setUserName(activeAccount.userName);
           }
         } catch (e) {
           console.error(e);
@@ -89,14 +95,14 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
       }
     };
     fetchName();
-  }, [firebaseUser]);
+  }, [activeAccount]);
 
   const [masterPassword, setMasterPassword] = useState('');
   const [showMasterPassword, setShowMasterPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleFirebaseAuth = async (e: React.FormEvent) => {
+  const handleAccountAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !authPassword) {
       setError(t("login_err_empty"));
@@ -105,20 +111,16 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
     setIsLoading(true);
     setError('');
     try {
-      let userCredential;
-      if (isRegistering) {
-        userCredential = await createUserWithEmailAndPassword(auth, email, authPassword);
-      } else {
-        userCredential = await signInWithEmailAndPassword(auth, email, authPassword);
-      }
-      setFirebaseUser(userCredential.user);
+      const account = isRegistering
+        ? await registerLocalAccount(email, authPassword)
+        : await signInLocalAccount(email, authPassword);
+      setActiveAccount(account);
+      setAuthPassword('');
     } catch (err: any) {
-      if (err.code === 'auth/configuration-not-found') {
-        setError('Firebase panelinde "Authentication > Email/Password" ayarını açmayı unutmuşsunuz!');
-      } else if (err.code === 'auth/invalid-credential') {
+      if (err?.message === 'INVALID_CREDENTIAL') {
         setError(t("login_err_invalid"));
       } else {
-        setError(err.message || t("login_err_fail"));
+        setError(err?.message || t("login_err_fail"));
       }
       tryHaptic(() => safeNotificationFeedback('error'));
     } finally {
@@ -126,22 +128,38 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
     }
   };
 
+  const handleSwitchAccount = () => {
+    signOutLocalAccount();
+    setActiveAccount(null);
+    setMasterPassword('');
+    setUserName('');
+    setError('');
+  };
+
   const performUnlock = async (pass: string) => {
+    if (!activeAccount) return;
     setIsLoading(true);
     setError('');
     try {
       const encoder = new TextEncoder();
       const salt = new Uint8Array(16);
-      const uidBytes = encoder.encode(firebaseUser.uid);
-      for(let i=0; i<Math.min(16, uidBytes.length); i++) {
+      const uidBytes = encoder.encode(activeAccount.id);
+      for (let i = 0; i < Math.min(16, uidBytes.length); i++) {
         salt[i] = uidBytes[i];
       }
       const key = await deriveKeyFromMasterPassword(pass, salt);
-      localStorage.setItem('aegis_master', pass);
-      setTimeout(() => {
-        onUnlock(key, firebaseUser.uid);
+      const valid = await verifyOrInitMasterKey(activeAccount, key);
+      if (!valid) {
+        setError(t("login_err_master_invalid") || "Ana şifre yanlış!");
         setIsLoading(false);
-      }, 500);
+        tryHaptic(() => safeNotificationFeedback('error'));
+        return;
+      }
+      if (biometricAvailable) {
+        localStorage.setItem('aegis_master', pass);
+      }
+      onUnlock(key, activeAccount);
+      setIsLoading(false);
     } catch (err) {
       setError(t("login_err_master_invalid"));
       setIsLoading(false);
@@ -185,17 +203,17 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
             <Shield size={42} style={{ color: 'var(--text-primary)' }} strokeWidth={1.5} />
           </div>
           <h2 className="elite-gradient-text" style={{ fontSize: '28px', fontWeight: 600, textAlign: 'center', letterSpacing: '-0.8px', marginBottom: '8px' }}>
-            {firebaseUser ? `${t('login_welcome')}, ${userName || firebaseUser?.displayName || firebaseUser?.email?.split('@')[0] || t('login_user')}!` : 'Aegis'}
+            {activeAccount ? `${t('login_welcome')}, ${userName || activeAccount.email.split('@')[0] || t('login_user')}!` : 'Aegis'}
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px', letterSpacing: '0.2px', textAlign: 'center', lineHeight: '1.5' }}>
-            {firebaseUser 
+            {activeAccount 
               ? t("login_desc_vault") 
               : t("login_desc_cloud")}
           </p>
         </div>
 
-        {!firebaseUser ? (
-          <form onSubmit={handleFirebaseAuth} className="flex-col gap-4 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+        {!activeAccount ? (
+          <form onSubmit={handleAccountAuth} className="flex-col gap-4 animate-slide-up" style={{ animationDelay: '0.1s' }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "8px" }}>
               <div style={{ position: 'relative' }}>
                 <Mail size={18} style={{ position: 'absolute', top: '16px', left: '16px', color: 'var(--text-secondary)' }} />
@@ -299,6 +317,14 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
                 <span>{t("login_biometric") || "Parmak İzi ile Hızlı Giriş"}</span>
               </button>
             )}
+            <button
+              type="button"
+              onClick={handleSwitchAccount}
+              className="w-full mt-2"
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '13px', cursor: 'pointer', padding: '8px' }}
+            >
+              Farklı hesapla giriş yap
+            </button>
           </form>
         )}
       </div>

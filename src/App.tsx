@@ -2,28 +2,34 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Login from './components/Login';
 import Vault from './components/Vault';
+import type { LocalAccount } from './localStore';
 
 function App() {
   const { t } = useTranslation();
   const [cryptoKey, setCryptoKey] = useState<CryptoKey | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [account, setAccount] = useState<LocalAccount | null>(null);
 
-  const handleUnlock = (key: CryptoKey, uid: string) => {
+  const handleUnlock = (key: CryptoKey, unlockedAccount: LocalAccount) => {
     setCryptoKey(key);
-    setUserId(uid);
+    setAccount(unlockedAccount);
   };
 
   const handleLock = () => {
     setCryptoKey(null);
-    setUserId(null);
+    setAccount(null);
   };
 
   return (
     <>
-      {!cryptoKey || !userId ? (
+      {!cryptoKey || !account ? (
         <Login onUnlock={handleUnlock} />
       ) : (
-        <Vault cryptoKey={cryptoKey} userId={userId} onLock={handleLock} />
+        <Vault
+          cryptoKey={cryptoKey}
+          userId={account.id}
+          userEmail={account.email}
+          onLock={handleLock}
+        />
       )}
       <div className="developer-credit">
         {t('developed_by')}

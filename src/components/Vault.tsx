@@ -29,9 +29,15 @@ const safeImpactFeedback = async (style: string) => {
   } catch { /* plugin not available */ }
 };
 
-import { db, auth } from '../firebase';
-import { collection, deleteDoc, deleteField, doc, getDoc, getDocs, setDoc, writeBatch } from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
+import {
+  getVaultStorageDir,
+  readVaultFile,
+  signOutLocalAccount,
+  updateLocalAccountMeta,
+  writeVaultFile,
+  type EncryptedEntryDoc,
+  type LocalVaultFile
+} from '../localStore';
 
 import {
   LeadingActions,
@@ -47,6 +53,7 @@ import { CustomDropdown } from './CustomDropdown';
 interface VaultProps {
   cryptoKey: CryptoKey;
   userId: string;
+  userEmail: string;
   onLock: () => void;
 }
 
@@ -67,19 +74,12 @@ interface PasswordEntry {
   renewalDate?: string;
 }
 
-interface EncryptedEntryDoc {
-  v: 2;
-  ciphertext: string;
-  iv: string;
-  updatedAt: number;
-}
-
 interface LocalEncryptedBackup {
   savedAt: number;
   entries: Record<string, EncryptedEntryDoc>;
 }
 
-const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
+const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) => {
   const { t, i18n } = useTranslation();
   const [entries, setEntries] = useState<PasswordEntry[]>([]);
   const [customCategories, setCustomCategories] = useState<CustomCategory[]>([]);
@@ -145,6 +145,8 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
   const [decryptionFailedCount, setDecryptionFailedCount] = useState(0);
   const [localBackupMeta, setLocalBackupMeta] = useState<{ count: number; savedAt: number } | null>(null);
   const [diskBackupMeta, setDiskBackupMeta] = useState<{ savedAt: number; path: string } | null>(null);
+  const [vaultDirPath, setVaultDirPath] = useState<string | null>(null);
+  const vaultFileRef = useRef<LocalVaultFile | null>(null);
 
   const localBackupKey = `aegis_local_backup_${userId}`;
   const diskBackupKey = `aegis_disk_backup_${userId}`;
@@ -220,77 +222,53 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
       });
     }
 
+    getVaultStorageDir().then(setVaultDirPath).catch(() => {});
+
     try {
-      const vaultDocRef = doc(db, 'vaults', userId);
-      const entriesColRef = collection(db, 'vaults', userId, 'entries');
-      const [docSnap, entriesSnap] = await Promise.all([
-        getDoc(vaultDocRef),
-        getDocs(entriesColRef)
-      ]);
+      const vaultFile = await readVaultFile(userId);
+      const effectiveVault: LocalVaultFile = vaultFile || {
+        appName: 'Aegis Vault',
+        format: 'aegis-local-v2',
+        accountId: userId,
+        userName: userEmail.split('@')[0],
+        baseCurrency: 'TRY',
+        customCategories: [],
+        entries: {},
+        updatedAt: Date.now()
+      };
 
-      let legacyEntries: PasswordEntry[] = [];
-      let alreadyMigrated = false;
-
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setUserName(data.userName || '');
-        setBaseCurrency(data.baseCurrency || 'TRY');
-        const rawCats = data.customCategories || [];
-        const normalizedCats: CustomCategory[] = rawCats.map((c: any) =>
-          typeof c === 'string' ? { id: c, name: c } : c
-        );
-        setCustomCategories(normalizedCats);
-        alreadyMigrated = Boolean(data.migratedV2);
-        if (Array.isArray(data.entries) && data.entries.length > 0) {
-          legacyEntries = data.entries;
-        }
-      }
+      vaultFileRef.current = effectiveVault;
+      setUserName(effectiveVault.userName || '');
+      setBaseCurrency(effectiveVault.baseCurrency || 'TRY');
+      const rawCats = effectiveVault.customCategories || [];
+      const normalizedCats: CustomCategory[] = rawCats.map((c: any) =>
+        typeof c === 'string' ? { id: c, name: c } : c
+      );
+      setCustomCategories(normalizedCats);
 
       const decryptedEntries: PasswordEntry[] = [];
       const encryptedMap: Record<string, EncryptedEntryDoc> = {};
       let failedCount = 0;
 
-      for (const entryDoc of entriesSnap.docs) {
-        const raw = entryDoc.data() as EncryptedEntryDoc;
+      for (const [entryId, raw] of Object.entries(effectiveVault.entries || {})) {
         if (raw && raw.ciphertext && raw.iv) {
-          encryptedMap[entryDoc.id] = {
+          encryptedMap[entryId] = {
             v: 2,
             ciphertext: raw.ciphertext,
             iv: raw.iv,
             updatedAt: raw.updatedAt || Date.now()
           };
           try {
-            const decrypted = await decryptEntryFromCloud(entryDoc.id, raw);
+            const decrypted = await decryptEntryFromCloud(entryId, raw);
             decryptedEntries.push(decrypted);
           } catch (e) {
-            console.error("Entry decryption failed:", entryDoc.id, e);
+            console.error("Entry decryption failed:", entryId, e);
             failedCount += 1;
           }
         }
       }
 
-      // One-time migration from legacy vaults/{userId}.entries array to encrypted subcollection
-      if (entriesSnap.empty && legacyEntries.length > 0 && !alreadyMigrated) {
-        const migratedMap: Record<string, EncryptedEntryDoc> = {};
-        for (let i = 0; i < legacyEntries.length; i += 450) {
-          const chunk = legacyEntries.slice(i, i + 450);
-          const batch = writeBatch(db);
-          for (const item of chunk) {
-            const entryId = item.id || `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-            const normalizedItem: PasswordEntry = { ...item, id: entryId };
-            const encryptedDoc = await encryptEntryForCloud(normalizedItem);
-            migratedMap[entryId] = encryptedDoc;
-            decryptedEntries.push(normalizedItem);
-            batch.set(doc(db, 'vaults', userId, 'entries', entryId), encryptedDoc);
-          }
-          await batch.commit();
-        }
-        await setDoc(vaultDocRef, { entries: deleteField(), migratedV2: true, updatedAt: Date.now() }, { merge: true });
-        if (Object.keys(migratedMap).length > 0) {
-          writeLocalBackup(migratedMap);
-        }
-      } else if (Object.keys(encryptedMap).length > 0) {
-        // Only refresh local encrypted backup when cloud actually has entries
+      if (Object.keys(encryptedMap).length > 0) {
         writeLocalBackup(encryptedMap);
       }
 
@@ -298,9 +276,9 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
       setDecryptionFailedCount(failedCount);
       setIsVaultLoaded(true);
     } catch (err: any) {
-      console.error("Failed to fetch vault", err);
+      console.error("Failed to load local vault", err);
       setIsVaultLoaded(false);
-      setVaultLoadError(err?.message || "Kasa verileri buluttan yüklenemedi.");
+      setVaultLoadError(err?.message || "Yerel kasa dosyası okunamadı.");
     } finally {
       setIsVaultLoading(false);
     }
@@ -320,12 +298,17 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
       .catch(() => console.error("Could not fetch exchange rates"));
   }, [baseCurrency]);
 
+  const persistVaultFile = async (nextVault: LocalVaultFile) => {
+    await writeVaultFile(userId, nextVault);
+    vaultFileRef.current = nextVault;
+  };
+
   const saveVaultPatch = async (patch: {
     userName?: string;
     baseCurrency?: string;
     customCategories?: CustomCategory[];
   }) => {
-    if (!isVaultLoaded) {
+    if (!isVaultLoaded || !vaultFileRef.current) {
       alert("Kasa verileri henüz yüklenmediği için kaydetme işlemi güvenlik amacıyla engellendi.");
       return;
     }
@@ -334,58 +317,73 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
     if (patch.customCategories !== undefined) setCustomCategories(patch.customCategories);
 
     try {
-      const docRef = doc(db, 'vaults', userId);
-      const cleanPatch = JSON.parse(JSON.stringify({ ...patch, updatedAt: Date.now() }));
-      await setDoc(docRef, { ...cleanPatch, entries: deleteField() }, { merge: true });
+      const nextVault: LocalVaultFile = {
+        ...vaultFileRef.current,
+        ...(patch.userName !== undefined ? { userName: patch.userName } : {}),
+        ...(patch.baseCurrency !== undefined ? { baseCurrency: patch.baseCurrency } : {}),
+        ...(patch.customCategories !== undefined ? { customCategories: patch.customCategories } : {}),
+        updatedAt: Date.now()
+      };
+      await persistVaultFile(nextVault);
+      if (patch.userName !== undefined) {
+        await updateLocalAccountMeta(userId, { userName: patch.userName });
+      }
     } catch (err: any) {
-      console.error("Failed to save vault settings to cloud", err);
+      console.error("Failed to save vault settings", err);
       alert("Hata (Kaydedilemedi): " + err.message);
     }
   };
 
   const saveSingleEntry = async (entry: PasswordEntry) => {
-    if (!isVaultLoaded) {
+    if (!isVaultLoaded || !vaultFileRef.current) {
       alert("Kasa verileri henüz yüklenmediği için kaydetme işlemi güvenlik amacıyla engellendi.");
       return false;
     }
     try {
       const encryptedDoc = await encryptEntryForCloud(entry);
-      const entryRef = doc(db, 'vaults', userId, 'entries', entry.id);
-      await setDoc(entryRef, encryptedDoc);
+      const nextEntriesMap: Record<string, EncryptedEntryDoc> = {
+        ...(vaultFileRef.current.entries || {}),
+        [entry.id]: encryptedDoc
+      };
+      await persistVaultFile({
+        ...vaultFileRef.current,
+        entries: nextEntriesMap,
+        updatedAt: Date.now()
+      });
 
       setEntries(prev => {
         const exists = prev.some(e => e.id === entry.id);
         return exists ? prev.map(e => (e.id === entry.id ? entry : e)) : [...prev, entry];
       });
 
-      const currentBackup = readLocalBackup()?.entries || {};
-      writeLocalBackup({ ...currentBackup, [entry.id]: encryptedDoc });
+      writeLocalBackup(nextEntriesMap);
       return true;
     } catch (err: any) {
-      console.error("Failed to save entry to cloud", err);
+      console.error("Failed to save entry", err);
       alert("Hata (Kaydedilemedi): " + err.message);
       return false;
     }
   };
 
   const saveMultipleEntries = async (entriesToSave: PasswordEntry[]) => {
-    if (!isVaultLoaded) {
+    if (!isVaultLoaded || !vaultFileRef.current) {
       alert("Kasa verileri henüz yüklenmediği için kaydetme işlemi güvenlik amacıyla engellendi.");
       return false;
     }
     if (entriesToSave.length === 0) return true;
     try {
-      const updatedMap: Record<string, EncryptedEntryDoc> = { ...(readLocalBackup()?.entries || {}) };
-      for (let i = 0; i < entriesToSave.length; i += 450) {
-        const chunk = entriesToSave.slice(i, i + 450);
-        const batch = writeBatch(db);
-        for (const entry of chunk) {
-          const encryptedDoc = await encryptEntryForCloud(entry);
-          updatedMap[entry.id] = encryptedDoc;
-          batch.set(doc(db, 'vaults', userId, 'entries', entry.id), encryptedDoc);
-        }
-        await batch.commit();
+      const nextEntriesMap: Record<string, EncryptedEntryDoc> = {
+        ...(vaultFileRef.current.entries || {})
+      };
+      for (const entry of entriesToSave) {
+        nextEntriesMap[entry.id] = await encryptEntryForCloud(entry);
       }
+
+      await persistVaultFile({
+        ...vaultFileRef.current,
+        entries: nextEntriesMap,
+        updatedAt: Date.now()
+      });
 
       setEntries(prev => {
         const byId = new Map(prev.map(e => [e.id, e]));
@@ -395,49 +393,53 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
         return Array.from(byId.values());
       });
 
-      writeLocalBackup(updatedMap);
+      writeLocalBackup(nextEntriesMap);
       return true;
     } catch (err: any) {
-      console.error("Failed to batch save entries to cloud", err);
+      console.error("Failed to batch save entries", err);
       alert("Hata (Kaydedilemedi): " + err.message);
       return false;
     }
   };
 
   const deleteSingleEntry = async (id: string) => {
-    if (!isVaultLoaded) {
+    if (!isVaultLoaded || !vaultFileRef.current) {
       alert("Kasa verileri henüz yüklenmediği için silme işlemi güvenlik amacıyla engellendi.");
       return false;
     }
     try {
-      await deleteDoc(doc(db, 'vaults', userId, 'entries', id));
+      const nextEntriesMap: Record<string, EncryptedEntryDoc> = {
+        ...(vaultFileRef.current.entries || {})
+      };
+      delete nextEntriesMap[id];
+
+      await persistVaultFile({
+        ...vaultFileRef.current,
+        entries: nextEntriesMap,
+        updatedAt: Date.now()
+      });
+
       setEntries(prev => prev.filter(e => e.id !== id));
-      const currentBackup = { ...(readLocalBackup()?.entries || {}) };
-      delete currentBackup[id];
-      writeLocalBackup(currentBackup);
+      writeLocalBackup(nextEntriesMap);
       return true;
     } catch (err: any) {
-      console.error("Failed to delete entry from cloud", err);
+      console.error("Failed to delete entry", err);
       alert("Hata (Silinemedi): " + err.message);
       return false;
     }
   };
 
   const deleteAllEntries = async () => {
-    if (!isVaultLoaded) {
+    if (!isVaultLoaded || !vaultFileRef.current) {
       alert("Kasa verileri henüz yüklenmediği için silme işlemi güvenlik amacıyla engellendi.");
       return false;
     }
     try {
-      const ids = entries.map(e => e.id);
-      for (let i = 0; i < ids.length; i += 450) {
-        const chunk = ids.slice(i, i + 450);
-        const batch = writeBatch(db);
-        for (const id of chunk) {
-          batch.delete(doc(db, 'vaults', userId, 'entries', id));
-        }
-        await batch.commit();
-      }
+      await persistVaultFile({
+        ...vaultFileRef.current,
+        entries: {},
+        updatedAt: Date.now()
+      });
       setEntries([]);
       writeLocalBackup({});
       return true;
@@ -797,12 +799,8 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
   };
 
   const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-      onLock();
-    } catch (error) {
-      console.error("Error signing out: ", error);
-    }
+    signOutLocalAccount();
+    onLock();
   };
 
   const startInlineEdit = () => {
@@ -1182,7 +1180,6 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
     return total;
   }, [entries, exchangeRates]);
 
-  const userEmail = auth.currentUser?.email || 'User';
   const displayUserName = userName || userEmail.split('@')[0];
   const userInitial = displayUserName.charAt(0).toUpperCase();
 
@@ -1510,8 +1507,13 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, onLock }) => {
                 <h3 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>Otomatik Yerel Şifreli Yedek</h3>
               </div>
               <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
-                Her değişiklikte kasanızın AES-256-GCM ile şifrelenmiş bir kopyası otomatik olarak bu cihazda saklanır. Bulut verisi silinirse tek tıkla geri yükleyebilirsiniz.
+                Tüm kasanız yalnızca bu bilgisayarda AES-256-GCM ile şifrelenmiş olarak saklanır (bulut kullanılmaz). Her değişiklikte önceki sağlam kopya <code>.bak</code> olarak korunur.
               </p>
+              {vaultDirPath && (
+                <p style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '8px', marginBottom: 0, wordBreak: 'break-all' }}>
+                  Kasa klasörü: <code>{vaultDirPath}</code>
+                </p>
+              )}
               {localBackupMeta && localBackupMeta.count > 0 ? (
                 <p style={{ color: '#22c55e', fontSize: '13px', marginTop: '10px', marginBottom: 0 }}>
                   Son yedek: <strong>{localBackupMeta.count} kayıt</strong> ({new Date(localBackupMeta.savedAt).toLocaleString(i18n.language)})

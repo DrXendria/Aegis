@@ -48,17 +48,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v0.1.3
-          releaseName: 'Aegis Vault v0.1.3 - Zero-Knowledge, 25 Languages & Multi-Platform'
+          tagName: v__VERSION__
+          releaseName: 'Aegis Vault v__VERSION__ - 100% Local Zero-Knowledge Vault'
           releaseBody: |
-            ### 🛡️ Aegis Vault v0.1.3
+            ### 🛡️ Aegis Vault v__VERSION__
             
-            - 🔒 **Zero-Knowledge Architecture:** AES-256-GCM + PBKDF2 (600,000 rounds).
+            - 🔒 **100% Local Zero-Knowledge Architecture:** AES-256-GCM + PBKDF2 (600,000 rounds), zero cloud dependency.
+            - 🔑 **Two-Layer Local Protection:** Email + PBKDF2-hashed account password + Master Password vault encryption.
+            - 💾 **Atomic Saves & Automatic 2-Week Encrypted Disk Backups:** Crash-safe `.tmp` + `.bak` writes and automatic backups in `Documents/Aegis-Backups`.
             - 🌍 **25 Global Languages:** 100% native localization.
-            - ⚠️ **Password Health Alerts:** 90+ day aging detection.
-            - 📥 **1-Click Import:** Support for Chrome, Bitwarden, LastPass, and Aegis JSON.
-            - 📱 **Mobile & Quick Access:** Quick Fetch, Quick Save bookmarklet, and PWA companion.
-            - 💳 **Subscription & Multi-Currency Tracker:** Real-time conversion across 18 currencies.
+            - 📥 **1-Click Import/Export:** Support for Chrome, Bitwarden, LastPass, and Aegis Encrypted v2 JSON.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}

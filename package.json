@@ -1,7 +1,7 @@
 {
   "name": "aegis",
   "private": true,
-  "version": "0.1.4",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,7 +15,6 @@
     "@tauri-apps/plugin-biometric": "^2.3.3",
     "@tauri-apps/plugin-haptics": "^2.3.3",
     "@tauri-apps/plugin-notification": "^2.3.3",
-    "firebase": "^12.17.1",
     "i18next": "^26.3.6",
     "lucide-react": "^1.32.0",
     "prop-types": "^15.8.1",

@@ -3,150 +3,135 @@
 
   # 🛡️ Aegis Vault
 
-  ### **Dijital Hayatınızı Güvenle Koruyun ve Senkronize Edin.**
-  *Next-Generation Zero-Knowledge Desktop & Web Password Manager*
+  ### **100% Local, Two-Layer Zero-Knowledge Password Manager.**
+  *Fast, private, and cloud-free desktop vault powered by Tauri 2 & Web Crypto API*
 
   <p align="center">
-    <a href="https://github.com/DrXendria/Aegis/releases"><img src="https://img.shields.io/badge/Release-v0.1.4-00f0ff.svg?style=for-the-badge&logo=github" alt="Release" /></a>
+    <a href="README.md"><strong>🇬🇧 English</strong></a> &bull;
+    <a href="README.tr.md"><strong>🇹🇷 Türkçe</strong></a>
+  </p>
+
+  <p align="center">
+    <a href="https://github.com/DrXendria/Aegis/releases"><img src="https://img.shields.io/badge/Release-v0.2.0-00f0ff.svg?style=for-the-badge&logo=github" alt="Release" /></a>
     <a href="https://tauri.app/"><img src="https://img.shields.io/badge/Tauri-2.0-24C8D8.svg?style=for-the-badge&logo=tauri&logoColor=white" alt="Tauri 2.0" /></a>
-    <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19.0-61dafb.svg?style=for-the-badge&logo=react&logoColor=black" alt="React 19" /></a>
-    <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.8-3178C6.svg?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" /></a>
+    <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19-61dafb.svg?style=for-the-badge&logo=react&logoColor=black" alt="React 19" /></a>
+    <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-6.0-3178C6.svg?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" /></a>
     <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License: MIT" /></a>
   </p>
 
   <p align="center">
     <strong>🔒 AES-256-GCM</strong> &bull;
     <strong>⚡ 600,000x PBKDF2</strong> &bull;
-    <strong>🌍 25 Küresel Dil</strong> &bull;
-    <strong>📱 Mobil & Hızlı Erişim</strong> &bull;
-    <strong>💳 Çoklu Para Birimli Abonelik Takibi</strong>
+    <strong>💾 100% Local Vault</strong> &bull;
+    <strong>🔄 Auto 2-Week Encrypted Backups</strong> &bull;
+    <strong>🌍 25 Languages</strong>
   </p>
 
   <p align="center">
-    <a href="#-hızlı-indirme--kurulum-quick-download"><strong>Hemen İndir (.exe)</strong></a> &bull;
-    <a href="#️-sıfır-bilgi-zero-knowledge-güvenlik-mimarisi"><strong>Güvenlik Şeması</strong></a> &bull;
-    <a href="#-25-desteklenen-küresel-dil-100-yerel"><strong>Diller</strong></a> &bull;
-    <a href="#-geliştirici-rehberi-development"><strong>Geliştirici Rehberi</strong></a>
+    <a href="#-quick-download--installation"><strong>Download</strong></a> &bull;
+    <a href="#️-local-zero-knowledge-security-architecture"><strong>Security Architecture</strong></a> &bull;
+    <a href="#-25-supported-languages-100-localized"><strong>Languages</strong></a> &bull;
+    <a href="#-developer-guide"><strong>Developer Guide</strong></a>
   </p>
 </div>
 
 ---
 
-## 🚀 Hızlı İndirme & Kurulum (Quick Download)
+## 🚀 Quick Download & Installation
 
-Aegis'i kullanmak için kod derlemenize veya terminal açmanıza **gerek yoktur**. İşletim sisteminize uygun hazır derlenmiş masaüstü yükleyicisini indirip hemen kullanmaya başlayabilirsiniz:
+No build tools, no `.env` files, and no cloud accounts required. Download the pre-built installer for your OS and start using Aegis immediately:
 
-| Platform | İndirme Bağlantısı | Dosya Türü | Durum |
+| Platform | Download Link | Package Type | Status |
 | :--- | :--- | :--- | :--- |
-| **🪟 Windows** | [**Aegis_0.1.4_x64-setup.exe**](https://github.com/DrXendria/Aegis/releases/download/v0.1.4/Aegis_0.1.4_x64-setup.exe) | Setup Yükleyici (`.exe`) | 🟢 Kararlı (Stable) |
-| **🪟 Windows (MSI)** | [**Aegis_0.1.4_x64_en-US.msi**](https://github.com/DrXendria/Aegis/releases/download/v0.1.4/Aegis_0.1.4_x64_en-US.msi) | MSI Paketi (`.msi`) | 🟢 Kararlı |
-| **🍎 macOS (Apple Silicon)** | [**Aegis_0.1.4_aarch64.dmg**](https://github.com/DrXendria/Aegis/releases/download/v0.1.4/Aegis_0.1.4_aarch64.dmg) | Apple Silicon (`.dmg`) | 🟢 Kararlı |
-| **🐧 Linux (Evrensel)** | [**Aegis_0.1.4_amd64.AppImage**](https://github.com/DrXendria/Aegis/releases/download/v0.1.4/Aegis_0.1.4_amd64.AppImage) | Portable (`.AppImage`) | 🟢 Kararlı |
-| **🐧 Linux (Debian / Ubuntu)** | [**Aegis_0.1.4_amd64.deb**](https://github.com/DrXendria/Aegis/releases/download/v0.1.4/Aegis_0.1.4_amd64.deb) | Debian Paketi (`.deb`) | 🟢 Kararlı |
-| **🐧 Linux (Fedora / RHEL)** | [**Aegis-0.1.4-1.x86_64.rpm**](https://github.com/DrXendria/Aegis/releases/download/v0.1.4/Aegis-0.1.4-1.x86_64.rpm) | RPM Paketi (`.rpm`) | 🟢 Kararlı |
+| **🪟 Windows** | [**Aegis_0.2.0_x64-setup.exe**](https://github.com/DrXendria/Aegis/releases/download/v0.2.0/Aegis_0.2.0_x64-setup.exe) | NSIS Installer (`.exe`) | 🟢 Stable |
+| **🪟 Windows (MSI)** | [**Aegis_0.2.0_x64_en-US.msi**](https://github.com/DrXendria/Aegis/releases/download/v0.2.0/Aegis_0.2.0_x64_en-US.msi) | MSI Package (`.msi`) | 🟢 Stable |
+| **🍎 macOS (Apple Silicon)** | [**Aegis_0.2.0_aarch64.dmg**](https://github.com/DrXendria/Aegis/releases/download/v0.2.0/Aegis_0.2.0_aarch64.dmg) | Disk Image (`.dmg`) | 🟢 Stable |
+| **🐧 Linux (Universal)** | [**Aegis_0.2.0_amd64.AppImage**](https://github.com/DrXendria/Aegis/releases/download/v0.2.0/Aegis_0.2.0_amd64.AppImage) | Portable (`.AppImage`) | 🟢 Stable |
+| **🐧 Linux (Debian / Ubuntu)** | [**Aegis_0.2.0_amd64.deb**](https://github.com/DrXendria/Aegis/releases/download/v0.2.0/Aegis_0.2.0_amd64.deb) | Debian Package (`.deb`) | 🟢 Stable |
+| **🐧 Linux (Fedora / RHEL)** | [**Aegis-0.2.0-1.x86_64.rpm**](https://github.com/DrXendria/Aegis/releases/download/v0.2.0/Aegis-0.2.0-1.x86_64.rpm) | RPM Package (`.rpm`) | 🟢 Stable |
 
 > [!TIP]
-> En son sürümler, değişiklik günlükleri ve tüm indirme seçenekleri için GitHub [**Releases**](https://github.com/DrXendria/Aegis/releases/tag/v0.1.4) sayfasını ziyaret edebilirsiniz.
+> Visit the GitHub [**Releases**](https://github.com/DrXendria/Aegis/releases) page for the latest builds and full changelogs.
 
 ---
 
-## 🛡️ Sıfır Bilgi (Zero-Knowledge) Güvenlik Mimarisi
+## 🛡️ Local Zero-Knowledge Security Architecture
 
-Aegis, **Sıfır Bilgi (Zero-Knowledge)** prensibiyle inşa edilmiştir. Ana parolanız (Master Password) ve kasanızdaki şifreler **asla düz metin olarak bilgisayarınızdan dışarı çıkmaz**.
+Aegis v0.2.0 is **100% local-only** — there is **no cloud database, no external server, and zero third-party telemetry**. Your passwords, titles, usernames, credit cards, and notes never leave your machine.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as 👤 Kullanıcı
-    participant Client as 💻 Aegis İstemcisi (Tarayıcı / Tauri)
-    participant Crypto as 🔐 Web Crypto API (AES-256-GCM)
-    participant Cloud as ☁️ Firebase Firestore
+    actor User as 👤 User
+    participant App as 💻 Aegis Desktop (Tauri + React)
+    participant Crypto as 🔐 Web Crypto API (PBKDF2 + AES-256-GCM)
+    participant Disk as 💾 Local Disk (.aegis + .bak + Backups)
 
-    User->>Client: Master Şifre & Kullanıcı Girişi
-    Note over Client,Crypto: Cihaz İçinde (Bellekte) İşlem
-    Client->>Crypto: PBKDF2 (SHA-256, 600.000 Tur) + Tuz
-    Crypto-->>Client: 256-bit AES Simetrik Kripto Anahtarı
-    
-    rect rgb(15, 23, 42)
-        Note right of Client: Kasa Kayıt & Güncelleme
-        Client->>Crypto: Düz Şifre + 96-bit Rastgele IV
-        Crypto-->>Client: Şifrelenmiş İkili Blok (Ciphertext)
-        Client->>Cloud: YALNIZCA Şifreli Blok Kaydedilir ({ciphertext, iv})
-    end
+    User->>App: Layer 1 — Email + Account Password
+    App->>Crypto: PBKDF2-SHA256 (600,000 rounds + random salt)
+    Crypto-->>App: Constant-time hash verification against accounts.json
 
-    Note over Cloud: Bulut Sunucusu YALNIZCA Anlamsız Şifreli Karakterler Görür!<br/>Asla Düz Metin Şifre veya Anahtara Erişemez.
+    User->>App: Layer 2 — Master Password
+    App->>Crypto: PBKDF2-SHA256 (600,000 rounds) → 256-bit AES-GCM Key
+    App->>Disk: Read vault_<id>.aegis (fallback to .bak if corrupted)
+    App->>Crypto: Verify keyCheck sentinel & decrypt entries in memory
+    Crypto-->>App: Decrypted vault entries (passwords stay masked until revealed)
 
     rect rgb(15, 23, 42)
-        Note right of Client: Kasa Kilidi Açma (Senkronizasyon)
-        Cloud-->>Client: Şifrelenmiş Bloklar Gelir
-        Client->>Crypto: Ciphertext + Master Key ile Çöz (Decrypt)
-        Crypto-->>Client: Düz Metin Şifreler Ekranda Gösterilir
-        Client-->>User: Kasa Açıldı & Kullanıma Hazır
+        Note right of App: Crash-Safe Atomic Save
+        App->>Crypto: Encrypt full entry payload (title, username, secret, metadata) + 96-bit random IV
+        Crypto-->>App: Encrypted blob { v: 2, ciphertext, iv, updatedAt }
+        App->>Disk: Copy current → .bak, write .tmp → atomic rename to vault_<id>.aegis
     end
+
+    Note over Disk: Every 14 days, an encrypted snapshot is automatically saved<br/>to Documents/Aegis-Backups/aegis-auto-backup-YYYY-MM-DD.json
 ```
 
-### 🔒 Kriptografik Özellikler:
-1. **Anahtar Türetme (KDF):** PBKDF2 with HMAC-SHA-256, **600,000 iterasyon** (OWASP 2026 standartlarına uygun).
-2. **Simetrik Şifreleme:** AES-GCM (Galois/Counter Mode) 256-bit — hem veri gizliliği hem de bütünlük doğrulama (tamper-proof) sunar.
-3. **Benzersiz IV:** Her bir parola ve kayıt için 96-bit kriptografik rastgele Initialization Vector (IV).
-4. **Pano Güvenliği (Clipboard Auto-Purge):** Kopyalanan şifreler 30 saniye sonra sistem panosundan otomatik olarak temizlenir.
+### 🔒 Cryptographic & Data-Safety Guarantees
+1. **Two-Layer Local Protection:**
+   - **Layer 1 (Account Login):** Email + Account Password verified locally using **PBKDF2-SHA256 (600,000 iterations + random 128-bit salt)**. Supports multiple isolated local profiles on the same computer.
+   - **Layer 2 (Vault Encryption):** Separate **Master Password** derives a 256-bit **AES-GCM** key that encrypts every entry (including titles, usernames, passwords, card details, and notes) with a unique 96-bit random IV.
+2. **Instant Master Password Verification:** A `keyCheck` encrypted sentinel rejects an incorrect Master Password immediately at unlock instead of opening an empty vault.
+3. **Crash-Safe Atomic Writes:** Every save copies the previous healthy vault to `.bak`, writes the new file to `.tmp`, and atomically renames it into place.
+4. **Automatic 2-Week Encrypted Disk Backups:** Every 14 days (and on-demand), Aegis writes an AES-256-GCM encrypted backup file to `Documents/Aegis-Backups/`.
+5. **Clipboard Auto-Purge:** Copied passwords are automatically cleared from your clipboard after 30 seconds.
 
 ---
 
-## ✨ Temel Özellikler
+## ✨ Key Features
 
-- **🔒 İki Kademeli Güvenlik:** İsteğe bağlı Firebase Bulut Senkronizasyonu + Asla kırılması mümkün olmayan yerel Master Şifre.
-- **⚠️ 90+ Günlük Eski Şifre Bildirimi:** Uzun süredir güncellenmemiş veya unutulmuş şifreler için otomatik sağlık uyarısı ve özel rozetler (`badge-old-password`).
-- **📥 1-Tıkla İçe Aktarma (Import):** Google Chrome, Bitwarden, LastPass ve Aegis yedeklerinizi tek tıkla kasanıza aktarın.
-- **⚡ Hızlı Arama & Tek Tıkla Kopyalama:** Arama çubuğuyla anında hesap bulma, tek tıkla kullanıcı adı/şifre kopyalama, güvenli şifre üretici ve 30 saniye sonra otomatik pano temizleme.
-- **📱 Mobil & Hızlı Erişim:** Android Otomatik Doldurma (AutoFill) mimarisi + iOS Safari ve Android Chrome için PWA desteği + Tek dokunuşla çalışan yer imi (Bookmarklet).
-- **💳 Kredi Kartları & Güvenli Notlar:** CVV gizleme, kart numarası maskeleme ve özel şifreli not defteri.
-- **💱 Çoklu Para Birimli Abonelik Takibi:** Netflix, Spotify, AWS gibi aboneliklerinizi TRY, USD, EUR, GBP ve 15+ para biriminde kaydedin; anlık döviz kuruyla aylık toplam giderinizi görün.
-- **🏷️ Dinamik Kategori & Filtreleme:** Sosyal Medya, Eğlence, Eğitim, İş & Finans, Alışveriş, Oyun ve özel renkli kullanıcı kategorileri.
-- **🎨 Glassmorphic Ultra-Modern Arayüz:** Karanlık ve Aydınlık mod, akıcı mikro-animasyonlar, iOS tipi kaydırma (swipe-to-delete/edit).
-- **🌍 25 Küresel Dil Desteği:** Sıfır İngilizce sızıntısı ile %100 yerel çevrilmiş 25 dünya dili.
-
----
-
-## 📥 1-Tıkla İçe Aktarma ve Geçiş (Chrome, Bitwarden, LastPass)
-
-Mevcut şifre yöneticinizden Aegis'e geçmek saniyeler sürer:
-
-1. **Google Chrome:** `chrome://password-manager/settings` -> *Şifreleri Dışa Aktar* (`.csv`).
-2. **Bitwarden:** *Ayarlar* -> *Kasayı Dışa Aktar* (`.csv` veya `.json`).
-3. **LastPass:** *Gelişmiş Seçenekler* -> *Dışa Aktar* (`.csv`).
-4. **Aegis'e Yükleyin:**
-   - Aegis'i açın -> Sol menüden **Veri Yönetimi** sekmesine tıklayın.
-   - **"Verileri İçe Aktar"** butonuna basın ve dosyanızı seçin.
-   - Tüm şifreleriniz otomatik olarak kategorilere ayrılır, cihazınızda AES-256 ile şifrelenir ve kasanıza eklenir!
+- **🔒 100% Local & Cloud-Free:** Zero cloud exposure, zero expired rules, zero API keys. Want multi-device sync? Simply sync your encrypted `.aegis` vault file or backups via Syncthing, Nextcloud, Google Drive, or USB.
+- **🛡️ Two-Layer Local Security:** Email + PBKDF2-hashed account login followed by Master Password AES-256-GCM vault unlock.
+- **💾 Automatic 2-Week Encrypted Disk Backups:** Scheduled encrypted backups in `Documents/Aegis-Backups/` plus one-click restore and manual backup controls.
+- **⚠️ 90+ Day Password Health Alerts:** Automatic warnings and badges for passwords older than 90 days.
+- **📥 1-Click Import & Export:** Import from Google Chrome (`.csv`), Bitwarden (`.csv`/`.json`), LastPass (`.csv`), or Aegis Encrypted v2 backups (`.json`).
+- **⚡ Fast Search & Generator:** Instant filtering, one-click copy, built-in strong password generator, and 30-second clipboard auto-clear.
+- **💳 Credit Cards & Secure Notes:** Masked card numbers, hidden CVV, and encrypted secure notes.
+- **💱 Multi-Currency Subscription Tracker:** Track recurring subscriptions across 18 currencies with automatic total calculation.
+- **🏷️ Custom Categories & Filters:** Built-in and user-defined categories with instant filtering.
+- **🎨 Glassmorphic UI:** Dark & Light themes with smooth micro-animations and swipe gestures.
+- **🌍 25 Global Languages:** 100% localized across 25 languages.
 
 ---
 
-## 📱 Mobil & Hızlı Erişim (Companion)
+## 📥 1-Click Import (Chrome, Bitwarden, LastPass, Aegis)
 
-Aegis, mobil cihazlarda mükemmel bir eşlikçidir:
+Migrating to Aegis takes seconds:
 
-### 1. Ana Ekrana Ekleme (PWA)
-- **iPhone / iPad (Safari):** Paylaş butonuna dokunun -> *"Ana Ekrana Ekle"* seçin.
-- **Android (Chrome):** Üç nokta menüsüne dokunun -> *"Uygulamayı Yükle"* seçin.
-
-### 2. Otomatik Doldurma Desteği (AutoFill)
-Aegis mobil sürümünü kurduğunuzda telefonunuzun sistem ayarlarından varsayılan *Otomatik Doldurma Hizmeti* olarak Aegis'i seçebilirsiniz. Diğer uygulamalarda (Instagram, bankacılık vb.) şifre alanına dokunduğunuzda klavyenizin üstünde otomatik hesap önerisi çıkar; yeni şifre oluşturduğunuzda ise Aegis kasanıza kaydetme onayı belirir.
-
-### 3. Mobil Tarayıcı Yer İmi (Bookmarklet)
-Safari veya Chrome mobil yer imlerinize şu kodu kaydedin:
-```javascript
-javascript:(function(){prompt('Aegis Hızlı Kaydet:',location.href);})();
-```
-Ziyaret ettiğiniz herhangi bir sitedeyken yer imine dokunarak sitenin linkini anında Aegis kasanıza aktarabilirsiniz.
+1. **Google Chrome:** `chrome://password-manager/settings` → *Export passwords* (`.csv`).
+2. **Bitwarden:** *Settings* → *Export Vault* (`.csv` or `.json`).
+3. **LastPass:** *Advanced Options* → *Export* (`.csv`).
+4. **Aegis Encrypted Backup:** Any `aegis-auto-backup-YYYY-MM-DD.json` file from `Documents/Aegis-Backups/`.
+5. **Import into Aegis:**
+   - Open Aegis → click **Data Management** in the sidebar.
+   - Click **Import Data** and select your file.
+   - Entries are auto-categorized, encrypted locally with AES-256-GCM, and saved atomically to your `.aegis` vault.
 
 ---
 
-## 🌍 25 Desteklenen Küresel Dil (%100 Yerel)
+## 🌍 25 Supported Languages (100% Localized)
 
-Aegis, dünyanın dört bir yanındaki kullanıcılar için 25 dilde eksiksiz yerelleştirilmiştir:
-
-| Bayrak & Dil | Kod | Bayrak & Dil | Kod | Bayrak & Dil | Kod |
+| Language | Code | Language | Code | Language | Code |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | 🇹🇷 **Türkçe** | `tr` | 🇨🇳 **中文** | `zh` | 🇩🇰 **Dansk** | `da` |
 | 🇬🇧 **English** | `en` | 🇮🇳 **हिन्दी** | `hi` | 🇳🇴 **Norsk** | `no` |
@@ -160,60 +145,62 @@ Aegis, dünyanın dört bir yanındaki kullanıcılar için 25 dilde eksiksiz ye
 
 ---
 
-## 💻 Geliştirici Rehberi (Development)
+## 💻 Developer Guide
 
-Projeyi yerel makinenizde çalıştırmak veya kaynak kodundan derlemek isterseniz:
+No environment variables or backend setup required to run or build from source.
 
-### Gereksinimler
-- **Node.js** (v18 veya üzeri)
-- **Rust & Cargo** (Tauri 2.0 derlemesi için)
+### Prerequisites
+- **Node.js** (v18+)
+- **Rust & Cargo** (for Tauri 2.0)
 - **Git**
 
-### Kurulum Adımları
+### Build & Run
 ```bash
-# 1. Depoyu klonlayın
+# 1. Clone the repository
 git clone https://github.com/DrXendria/Aegis.git
 cd Aegis
 
-# 2. Bağımlılıkları yükleyin
+# 2. Install dependencies
 npm install
 
-# 3. Geliştirme sunucusunu (Hot-Reload) başlatın
+# 3. Start frontend dev server (Hot-Reload)
 npm run dev
 
-# 4. Masaüstü uygulamasını geliştirici modunda açın
+# 4. Run desktop app in development mode
 npm run tauri dev
 
-# 5. Üretim (Production) Yükleyicisi (.exe, .dmg, .AppImage) Derleyin
+# 5. Build production installers (.exe, .msi, .dmg, .AppImage, .deb, .rpm)
 npm run tauri build
 ```
 
-Derlenen kurulum dosyaları `src-tauri/target/release/bundle/` dizininde oluşturulur.
+Compiled installers are output to `src-tauri/target/release/bundle/`.
 
 ---
 
-## 🛡️ Karşılaştırma Tablosu
+## 🛡️ Comparison
 
-| Kriter | Aegis Vault | 1Password | Bitwarden | LastPass |
+| Feature | Aegis Vault | 1Password | Bitwarden | LastPass |
 | :--- | :---: | :---: | :---: | :---: |
-| **Sıfır-Bilgi Şifreleme** | **✅ AES-256-GCM** | ✅ Var | ✅ Var | ⚠️ Kapalı Kod |
-| **PBKDF2 Tur Sayısı** | **⚡ 600.000 Tur** | 650.000 | 600.000 | 100.100 |
-| **Abonelik & Kur Takibi** | **✅ Dahili (18 Kur)** | ❌ Yok | ❌ Yok | ❌ Yok |
-| **Eski Şifre Uyarısı (90g)**| **✅ Otomatik** | ⚠️ Sadece Rapor | ⚠️ Premium | ❌ Yok |
-| **Açık Kaynak Kod (MIT)** | **✅ %100 Açık** | ❌ Kapalı | ✅ Açık | ❌ Kapalı |
-| **Dil Seçeneği** | **🌍 25 Dil** | 12 Dil | 16 Dil | 8 Dil |
-| **Masaüstü Motoru** | **🚀 Tauri 2.0 (<10MB)**| Electron (150MB+) | Electron (150MB+) | Web Tabanlı |
-| **Fiyat** | **🎉 %100 Ücretsiz** | $35.88 / yıl | $10.00 / yıl | $36.00 / yıl |
+| **Zero-Knowledge Encryption** | **✅ AES-256-GCM** | ✅ Yes | ✅ Yes | ⚠️ Closed Source |
+| **100% Local / No Cloud Required** | **✅ Yes** | ❌ No | ⚠️ Self-Host Only | ❌ No |
+| **PBKDF2 Iterations** | **⚡ 600,000** | 650,000 | 600,000 | 100,100 |
+| **Auto Encrypted Disk Backups** | **✅ Built-in (14d)** | ❌ No | ❌ No | ❌ No |
+| **Subscription & FX Tracker** | **✅ Built-in (18 FX)** | ❌ No | ❌ No | ❌ No |
+| **Password Aging Alerts (90d)** | **✅ Automatic** | ⚠️ Report Only | ⚠️ Paid | ❌ No |
+| **Open Source (MIT)** | **✅ 100% Open** | ❌ Closed | ✅ Open | ❌ Closed |
+| **Languages** | **🌍 25** | 12 | 16 | 8 |
+| **Desktop Engine** | **🚀 Tauri 2.0** | Electron (150MB+) | Electron (150MB+) | Web |
+| **Price** | **🎉 Free Forever** | $35.88 / yr | $10.00 / yr | $36.00 / yr |
 
 ---
 
-## 👨‍💻 Geliştirici & Lisans
+## 👨‍💻 Author & License
 
-Bu proje **[DrXendria](https://github.com/DrXendria)** tarafından güvenliğe, gizliliğe ve estetiğe önem veren kullanıcılar için tutkuyla geliştirilmiştir.
+Built by **[DrXendria](https://github.com/DrXendria)** for users who value true local privacy, strong cryptography, and clean design.
 
-- **Lisans:** [MIT Lisansı](LICENSE) kapsamında tamamen özgür ve açık kaynaklıdır.
-- **İletişim & Katkı:** Hata bildirimleri (Issues) ve Katkı Talepleri (Pull Requests) memnuniyetle karşılanır.
+- **License:** [MIT License](LICENSE)
+- **Contributions:** Issues and Pull Requests are always welcome.
 
 <div align="center">
-  <sub>Güvenliğin ve estetiğin mükemmel uyumu. &copy; 2026 DrXendria</sub>
+  <sub>Privacy, security, and design in harmony. &copy; 2026 DrXendria</sub>
 </div>
