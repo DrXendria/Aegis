@@ -153,6 +153,13 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
   const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    title: string;
+    message: string;
+    requireConfirmText?: boolean;
+    onConfirm: () => Promise<void>;
+  } | null>(null);
+  const [confirmTextInput, setConfirmTextInput] = useState('');
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
@@ -770,11 +777,16 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
     setIsAdding(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm(t("delete_confirm"))) {
-      tryHaptic(() => safeImpactFeedback('medium'));
-      await deleteSingleEntry(id);
-    }
+  const handleDelete = (id: string) => {
+    setConfirmTextInput('');
+    setConfirmDialog({
+      title: t("delete"),
+      message: t("delete_confirm"),
+      onConfirm: async () => {
+        tryHaptic(() => safeImpactFeedback('medium'));
+        await deleteSingleEntry(id);
+      }
+    });
   };
 
   const handleReveal = async (id: string) => {
@@ -859,23 +871,27 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
     return newCat.id;
   };
 
-  const handleDeleteCategory = async (catId: string) => {
+  const handleDeleteCategory = (catId: string) => {
     const toDelete = customCategories.find(c => c.id === catId);
     if (!toDelete) return;
-    if (!window.confirm(t("delete_category_confirm") || "Bu kategoriyi silmek istediğinize emin misiniz?")) {
-      return;
-    }
-    const updatedCats = customCategories.filter(c => c.id !== catId);
-    const affectedEntries = entries
-      .filter(e => e.category === catId)
-      .map(e => ({ ...e, category: 'other' }));
-    if (selectedCategoryFilter === catId) setSelectedCategoryFilter('all');
-    if (newCategory === catId) setNewCategory('other');
-    await saveVaultPatch({ customCategories: updatedCats });
-    if (affectedEntries.length > 0) {
-      await saveMultipleEntries(affectedEntries);
-    }
-    showToast(t("category_deleted") || "Kategori silindi");
+    setConfirmTextInput('');
+    setConfirmDialog({
+      title: t("delete"),
+      message: t("delete_category_confirm"),
+      onConfirm: async () => {
+        const updatedCats = customCategories.filter(c => c.id !== catId);
+        const affectedEntries = entries
+          .filter(e => e.category === catId)
+          .map(e => ({ ...e, category: 'other' }));
+        if (selectedCategoryFilter === catId) setSelectedCategoryFilter('all');
+        if (newCategory === catId) setNewCategory('other');
+        await saveVaultPatch({ customCategories: updatedCats });
+        if (affectedEntries.length > 0) {
+          await saveMultipleEntries(affectedEntries);
+        }
+        showToast(t("category_deleted") || "Kategori silindi");
+      }
+    });
   };
 
   const handleInlineAddCategory = async () => {
@@ -1128,18 +1144,19 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
     }
   };
 
-  const handleDeleteAllData = async () => {
-    const confirm1 = window.confirm("DİKKAT: Kasanızdaki TÜM şifreler, kartlar ve abonelikler silinecek! Devam etmek istiyor musunuz?");
-    if (!confirm1) return;
-    const confirm2 = window.prompt("Onaylamak için lütfen 'SIL' yazın:");
-    if (confirm2 !== 'SIL' && confirm2 !== 'DELETE') {
-      showToast("İşlem iptal edildi.");
-      return;
-    }
-    const ok = await deleteAllEntries();
-    if (ok) {
-      showToast("Tüm veriler kalıcı olarak temizlendi.");
-    }
+  const handleDeleteAllData = () => {
+    setConfirmTextInput('');
+    setConfirmDialog({
+      title: t("delete_all_data"),
+      message: t("delete_all_desc"),
+      requireConfirmText: true,
+      onConfirm: async () => {
+        const ok = await deleteAllEntries();
+        if (ok) {
+          showToast(t("delete_all_data"));
+        }
+      }
+    });
   };
 
   const filteredEntries = useMemo(() => {
@@ -2377,6 +2394,70 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                 <button type="submit" className="neon-btn primary w-full">{t("save_encrypted")}</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Confirmation Modal */}
+      {confirmDialog && (
+        <div
+          className="modal-overlay"
+          style={{ zIndex: 2000 }}
+          onClick={() => { setConfirmDialog(null); setConfirmTextInput(''); }}
+        >
+          <div
+            className="glass-panel modal-content"
+            style={{ maxWidth: '420px', padding: '28px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <AlertTriangle size={20} style={{ color: 'var(--accent-danger)' }} />
+              </div>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>{confirmDialog.title}</h3>
+            </div>
+
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6, margin: '0 0 20px 0' }}>
+              {confirmDialog.message}
+            </p>
+
+            {confirmDialog.requireConfirmText && (
+              <input
+                type="text"
+                className="neon-input"
+                style={{ marginBottom: '18px' }}
+                placeholder="DELETE / SIL"
+                value={confirmTextInput}
+                onChange={(e) => setConfirmTextInput(e.target.value)}
+                autoFocus
+              />
+            )}
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                type="button"
+                onClick={() => { setConfirmDialog(null); setConfirmTextInput(''); }}
+                className="neon-btn w-full"
+              >
+                {t('cancel')}
+              </button>
+              <button
+                type="button"
+                disabled={confirmDialog.requireConfirmText && confirmTextInput.trim().toUpperCase() !== 'DELETE' && confirmTextInput.trim().toUpperCase() !== 'SIL'}
+                onClick={async () => {
+                  const action = confirmDialog.onConfirm;
+                  setConfirmDialog(null);
+                  setConfirmTextInput('');
+                  await action();
+                }}
+                className="neon-btn danger w-full"
+                style={{
+                  opacity: (confirmDialog.requireConfirmText && confirmTextInput.trim().toUpperCase() !== 'DELETE' && confirmTextInput.trim().toUpperCase() !== 'SIL') ? 0.45 : 1
+                }}
+              >
+                {t('delete')}
+              </button>
+            </div>
           </div>
         </div>
       )}
