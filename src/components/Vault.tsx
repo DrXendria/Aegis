@@ -306,6 +306,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
   const saveVaultPatch = async (patch: {
     userName?: string;
     baseCurrency?: string;
+    language?: string;
     customCategories?: CustomCategory[];
   }) => {
     if (!isVaultLoaded || !vaultFileRef.current) {
@@ -321,12 +322,16 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
         ...vaultFileRef.current,
         ...(patch.userName !== undefined ? { userName: patch.userName } : {}),
         ...(patch.baseCurrency !== undefined ? { baseCurrency: patch.baseCurrency } : {}),
+        ...(patch.language !== undefined ? { language: patch.language } : {}),
         ...(patch.customCategories !== undefined ? { customCategories: patch.customCategories } : {}),
         updatedAt: Date.now()
       };
       await persistVaultFile(nextVault);
-      if (patch.userName !== undefined) {
-        await updateLocalAccountMeta(userId, { userName: patch.userName });
+      if (patch.userName !== undefined || patch.language !== undefined) {
+        await updateLocalAccountMeta(userId, {
+          ...(patch.userName !== undefined ? { userName: patch.userName } : {}),
+          ...(patch.language !== undefined ? { language: patch.language } : {}),
+        });
       }
     } catch (err: any) {
       console.error("Failed to save vault settings", err);
@@ -1265,7 +1270,11 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                   { value: 'fil', label: 'Filipino (Tagalog)' }
                 ]}
                 value={i18n.language}
-                onChange={(val) => i18n.changeLanguage(val)}
+                onChange={(val) => {
+                  i18n.changeLanguage(val);
+                  localStorage.setItem('i18nextLng', val);
+                  saveVaultPatch({ language: val });
+                }}
                 width="160px"
               />
             </div>
@@ -1319,7 +1328,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
               <h3 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>{t("mobile_companion") || "Mobil & Hızlı Erişim"}</h3>
             </div>
             <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
-              Aegis'i telefonunuzda, tabletinizde veya mobil tarayıcınızda yerel uygulama gibi kullanabilir; şifrelerinizi tek dokunuşla çekip kopyalayabilir veya sitelerden hızlıca kaydedebilirsiniz.
+              {t("mobile_companion_desc")}
             </p>
           </div>
 
@@ -1332,15 +1341,15 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                   <Key size={20} style={{ color: '#00f0ff' }} />
                 </div>
                 <div>
-                  <h4 style={{ margin: 0, fontSize: '16px' }}>Android Otomatik Doldurma (AutoFill)</h4>
-                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>Klavye üstünde anında şifre önerisi ve doldurma</p>
+                  <h4 style={{ margin: 0, fontSize: '16px' }}>{t("android_autofill_title")}</h4>
+                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>{t("android_autofill_sub")}</p>
                 </div>
               </div>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
-                Telefonunuzda başka bir uygulamaya (Instagram, Twitter, banka vb.) giriş yaparken klavyenin üstünde otomatik olarak Aegis kasanızdaki ilgili hesap çıkar; dokunduğunuzda alanları anında doldurur.
+                {t("android_autofill_desc")}
               </p>
               <div style={{ fontSize: '12px', color: '#00f0ff', background: 'rgba(0, 240, 255, 0.08)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
-                ⚙️ <strong>Etkinleştirme:</strong> Telefon Ayarları &gt; Şifreler ve Otomatik Doldurma &gt; Varsayılan Hizmet: <strong>Aegis</strong>
+                ⚙️ {t("android_autofill_setup")}
               </div>
             </div>
 
@@ -1351,15 +1360,15 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                   <Shield size={20} style={{ color: '#a855f7' }} />
                 </div>
                 <div>
-                  <h4 style={{ margin: 0, fontSize: '16px' }}>Uygulamalar Arası Otomatik Kaydetme</h4>
-                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>Yeni oluşturulan şifreleri anında kasanıza ekleyin</p>
+                  <h4 style={{ margin: 0, fontSize: '16px' }}>{t("cross_app_save_title")}</h4>
+                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>{t("cross_app_save_sub")}</p>
                 </div>
               </div>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
-                Başka bir uygulamada yeni bir hesap oluşturduğunuzda veya şifrenizi güncellediğinizde işletim sistemi ekranda "Aegis kasanıza kaydedilsin mi?" onay kartı gösterir ve şifrenizi cihazınızda uçtan uca şifreleyerek depolar.
+                {t("cross_app_save_desc")}
               </p>
               <div style={{ fontSize: '12px', color: '#a855f7', background: 'rgba(168, 85, 247, 0.08)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(168, 85, 247, 0.2)' }}>
-                🔒 <strong>Sıfır Bilgi:</strong> Kaydedilen tüm şifreler cihazınızda AES-256-GCM ile şifrelenir.
+                🔒 {t("zero_knowledge_note")}
               </div>
             </div>
 
@@ -1370,13 +1379,13 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                   <Smartphone size={20} style={{ color: '#22c55e' }} />
                 </div>
                 <div>
-                  <h4 style={{ margin: 0, fontSize: '16px' }}>Ana Ekrana Ekle (PWA)</h4>
+                  <h4 style={{ margin: 0, fontSize: '16px' }}>{t("pwa_title")}</h4>
                   <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>iOS Safari & Android Chrome</p>
                 </div>
               </div>
               <ul style={{ fontSize: '13px', color: 'var(--text-secondary)', paddingLeft: '20px', lineHeight: 1.6, margin: '8px 0 0 0' }}>
-                <li><strong>iOS (Safari):</strong> Alt kısımdaki <Share2 size={13} style={{ display: 'inline', verticalAlign: 'middle' }} /> <em>Paylaş</em> butonuna dokunun, ardından <em>"Ana Ekrana Ekle"</em> seçeneğini seçin.</li>
-                <li><strong>Android (Chrome):</strong> Sağ üstteki üç nokta menüsüne dokunun, <em>"Uygulamayı Yükle"</em> veya <em>"Ana Ekrana Ekle"</em> seçin.</li>
+                <li><strong>iOS (Safari):</strong> <Share2 size={13} style={{ display: 'inline', verticalAlign: 'middle' }} /> {t("pwa_ios_step")}</li>
+                <li><strong>Android (Chrome):</strong> {t("pwa_android_step")}</li>
               </ul>
             </div>
 
@@ -1387,12 +1396,12 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                   <Sparkles size={20} style={{ color: '#eab308' }} />
                 </div>
                 <div>
-                  <h4 style={{ margin: 0, fontSize: '16px' }}>Mobil Yer İmi Butonu (Bookmarklet)</h4>
-                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>Herhangi bir web sayfasını Aegis'e aktarın</p>
+                  <h4 style={{ margin: 0, fontSize: '16px' }}>{t("bookmarklet_title")}</h4>
+                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>{t("bookmarklet_sub")}</p>
                 </div>
               </div>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
-                Mobil tarayıcınızın yer imlerine aşağıdaki javascript kodunu ekleyin. Herhangi bir sitedeyken yer imine dokunarak adresi anında kopyalayabilirsiniz:
+                {t("bookmarklet_desc")}
               </p>
               <div style={{ 
                 background: 'rgba(0,0,0,0.3)', 
@@ -1404,17 +1413,17 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                 overflowX: 'auto',
                 whiteSpace: 'nowrap'
               }}>
-                javascript:(function()&#123;prompt('Aegis%20Kaydet:',location.href);&#125;)();
+                javascript:(function()&#123;prompt('Aegis:',location.href);&#125;)();
               </div>
               <button 
                 onClick={() => {
-                  navigator.clipboard.writeText("javascript:(function(){prompt('Aegis Kaydet:',location.href);})();");
-                  showToast("Bookmarklet kodu kopyalandı!");
+                  navigator.clipboard.writeText("javascript:(function(){prompt('Aegis:',location.href);})();");
+                  showToast(t("bookmarklet_copied"));
                 }}
                 className="neon-btn flex-center gap-2" 
                 style={{ padding: '8px 14px', fontSize: '12px', alignSelf: 'flex-start' }}
               >
-                <Copy size={14} /> Kodu Kopyala
+                <Copy size={14} /> {t("copy_code")}
               </button>
             </div>
 
