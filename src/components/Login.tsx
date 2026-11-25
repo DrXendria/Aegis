@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Shield, Lock, Mail, User, ChevronRight, CheckCircle2, Eye, EyeOff, Fingerprint } from 'lucide-react';
 
-const tryHaptic = (action: () => Promise<any>) => action().catch(() => {});
+const tryHaptic = (action: () => Promise<any>) => action().catch(() => { });
 
 const safeNotificationFeedback = async (type: string) => {
   try {
@@ -57,7 +57,7 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
       }
     };
     loadSession();
-    
+
     const checkBio = async () => {
       try {
         const status = await safeBiometricCheckStatus();
@@ -206,8 +206,8 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
             {activeAccount ? `${t('login_welcome')}, ${userName || activeAccount.email.split('@')[0] || t('login_user')}!` : 'Aegis'}
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px', letterSpacing: '0.2px', textAlign: 'center', lineHeight: '1.5' }}>
-            {activeAccount 
-              ? t("login_desc_vault") 
+            {activeAccount
+              ? t("login_desc_vault")
               : t("login_desc_cloud")}
           </p>
         </div>
@@ -236,7 +236,7 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
                   value={authPassword}
                   onChange={(e) => setAuthPassword(e.target.value)}
                 />
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowAuthPassword(!showAuthPassword)}
                   style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
@@ -250,8 +250,8 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
                 <p style={{ color: 'var(--accent-danger)', fontSize: '13px', textAlign: 'center', fontWeight: 500 }}>{error}</p>
               </div>
             )}
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="neon-btn primary w-full mt-2"
               disabled={isLoading}
               style={{ padding: '16px', fontSize: '15px', borderRadius: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -259,8 +259,8 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
               <span>{isLoading ? '...' : (isRegistering ? t("login_register") : t("login_signin"))}</span>
               <ChevronRight size={18} opacity={0.7} />
             </button>
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => { setIsRegistering(!isRegistering); setError(''); }}
               className="w-full mt-2"
               style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '14px', cursor: 'pointer', transition: 'color 0.2s', padding: '8px' }}
@@ -287,7 +287,7 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
                 onChange={(e) => setMasterPassword(e.target.value)}
                 autoFocus
               />
-              <button 
+              <button
                 type="button"
                 onClick={() => setShowMasterPassword(!showMasterPassword)}
                 style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
@@ -296,8 +296,8 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
               </button>
             </div>
             {error && <p style={{ color: 'var(--accent-danger)', fontSize: '13px', marginTop: '4px', textAlign: 'center', fontWeight: 500 }}>{error}</p>}
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="neon-btn primary w-full mt-2"
               disabled={isLoading}
               style={{ padding: '16px', fontSize: '15px', borderRadius: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -306,8 +306,8 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
               <Lock size={18} opacity={0.7} />
             </button>
             {biometricAvailable && savedMasterPassword && (
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={handleBiometricUnlock}
                 className="neon-btn w-full flex-center gap-2"
                 disabled={isLoading}
