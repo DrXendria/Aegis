@@ -323,7 +323,7 @@ const Login: React.FC<LoginProps> = ({ onUnlock }) => {
               className="w-full mt-2"
               style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '13px', cursor: 'pointer', padding: '8px' }}
             >
-              Farklı hesapla giriş yap
+              {t("switch_account") || "Sign in with a different account"}
             </button>
           </form>
         )}

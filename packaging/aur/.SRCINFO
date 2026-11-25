@@ -1,0 +1,18 @@
+pkgbase = aegis-vault-bin
+	pkgdesc = 100% local, two-layer zero-knowledge password manager built with Tauri
+	pkgver = 0.2.0
+	pkgrel = 1
+	url = https://github.com/DrXendria/Aegis
+	arch = x86_64
+	license = MIT
+	depends = gtk3
+	depends = webkit2gtk-4.1
+	depends = libayatana-appindicator
+	depends = hicolor-icon-theme
+	provides = aegis-vault
+	conflicts = aegis-vault
+	options = !strip
+	source = https://github.com/DrXendria/Aegis/releases/download/v0.2.0/Aegis_0.2.0_amd64.deb
+	sha256sums = 6c76c08ef8c5331934320c0926d887d24deccb5a84d04f0b7d420a037d06dd60
+
+pkgname = aegis-vault-bin

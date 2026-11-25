@@ -1450,7 +1450,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                 <h3 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>{t("import_data") || "Verileri İçe Aktar (CSV / JSON)"}</h3>
               </div>
               <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
-                Google Chrome, Bitwarden, LastPass veya Aegis yedeklerinizi tek tıkla kasanıza aktarın. Tüm şifreler cihazınızda sıfır bilgi (Zero-Knowledge) mimarisiyle uçtan uca şifrelenir.
+                {t("import_data_desc")}
               </p>
             </div>
 
@@ -1486,7 +1486,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                 <h3 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>{t("export_data") || "Verileri Dışa Aktar (JSON)"}</h3>
               </div>
               <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
-                Kasanızdaki tüm şifreleri, kategorileri ve abonelikleri içeren JSON formatında tam bir yedek dosyası indirin.
+                {t("export_data_desc")}
               </p>
             </div>
 
@@ -1504,23 +1504,23 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
             <div>
               <div className="flex-center gap-2" style={{ justifyContent: 'flex-start', marginBottom: '8px' }}>
                 <Database size={22} style={{ color: '#22c55e' }} />
-                <h3 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>Otomatik Yerel Şifreli Yedek</h3>
+                <h3 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>{t("local_backup_title")}</h3>
               </div>
               <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
-                Tüm kasanız yalnızca bu bilgisayarda AES-256-GCM ile şifrelenmiş olarak saklanır (bulut kullanılmaz). Her değişiklikte önceki sağlam kopya <code>.bak</code> olarak korunur.
+                {t("local_backup_desc")}
               </p>
               {vaultDirPath && (
                 <p style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '8px', marginBottom: 0, wordBreak: 'break-all' }}>
-                  Kasa klasörü: <code>{vaultDirPath}</code>
+                  {t("vault_folder_label")} <code>{vaultDirPath}</code>
                 </p>
               )}
               {localBackupMeta && localBackupMeta.count > 0 ? (
                 <p style={{ color: '#22c55e', fontSize: '13px', marginTop: '10px', marginBottom: 0 }}>
-                  Son yedek: <strong>{localBackupMeta.count} kayıt</strong> ({new Date(localBackupMeta.savedAt).toLocaleString(i18n.language)})
+                  {t("last_backup_label")} <strong>{localBackupMeta.count} {t("entries_count_unit")}</strong> ({new Date(localBackupMeta.savedAt).toLocaleString(i18n.language)})
                 </p>
               ) : (
                 <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '10px', marginBottom: 0 }}>
-                  Henüz bu cihazda yerel şifreli yedek bulunmuyor.
+                  {t("no_local_backup")}
                 </p>
               )}
             </div>
@@ -1531,21 +1531,21 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
               className="neon-btn flex-center gap-2 w-full"
               style={{ justifyContent: 'center', padding: '16px', fontSize: '15px', opacity: (!localBackupMeta || localBackupMeta.count === 0) ? 0.5 : 1 }}
             >
-              <Database size={18} /> Yerel Şifreli Yedekten Geri Yükle
+              <Database size={18} /> {t("restore_local_backup")}
             </button>
 
             <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '16px' }}>
               <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: '0 0 8px 0' }}>
-                <strong>2 Haftalık Otomatik Disk Yedeği:</strong> Uygulama açıldığında 14 günde bir <code style={{ fontSize: '12px' }}>Belgeler/Aegis-Backups</code> klasörüne şifreli JSON yedeği kaydedilir.
+                <strong>{t("biweekly_backup_title")}</strong> {t("biweekly_backup_desc")}
               </p>
               {diskBackupMeta ? (
                 <p style={{ color: '#22c55e', fontSize: '12px', margin: '0 0 12px 0', wordBreak: 'break-all' }}>
-                  Son disk yedeği: {new Date(diskBackupMeta.savedAt).toLocaleString(i18n.language)} — Sonraki: {new Date(diskBackupMeta.savedAt + TWO_WEEKS_MS).toLocaleDateString(i18n.language)}<br />
-                  Konum: {diskBackupMeta.path}
+                  {t("last_disk_backup")} {new Date(diskBackupMeta.savedAt).toLocaleString(i18n.language)} — {t("next_disk_backup")} {new Date(diskBackupMeta.savedAt + TWO_WEEKS_MS).toLocaleDateString(i18n.language)}<br />
+                  {t("backup_location")} {diskBackupMeta.path}
                 </p>
               ) : (
                 <p style={{ color: 'var(--text-secondary)', fontSize: '12px', margin: '0 0 12px 0' }}>
-                  Henüz bilgisayara otomatik şifreli yedek alınmadı (kayıt eklediğinizde otomatik alınır).
+                  {t("no_disk_backup")}
                 </p>
               )}
               <button
@@ -1554,7 +1554,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                 className="neon-btn flex-center gap-2 w-full"
                 style={{ justifyContent: 'center', padding: '12px', fontSize: '14px', opacity: entries.length === 0 ? 0.5 : 1 }}
               >
-                <Save size={16} /> Şimdi Bilgisayara Şifreli Yedek Al
+                <Save size={16} /> {t("backup_now_disk")}
               </button>
             </div>
           </div>
@@ -1564,10 +1564,10 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
             <div>
               <div className="flex-center gap-2" style={{ justifyContent: 'flex-start', marginBottom: '8px' }}>
                 <Trash2 size={22} style={{ color: 'var(--accent-danger)' }} />
-                <h3 style={{ fontSize: '20px', fontWeight: 600, margin: 0, color: 'var(--accent-danger)' }}>{t("delete_all_data") || "Tüm Verileri Sıfırla"}</h3>
+                <h3 style={{ fontSize: '20px', fontWeight: 600, margin: 0, color: 'var(--accent-danger)' }}>{t("delete_all_data")}</h3>
               </div>
               <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
-                Kasanızdaki tüm şifreleri, kartları ve abonelikleri kalıcı olarak siler. Bu işlem geri alınamaz!
+                {t("delete_all_desc")}
               </p>
             </div>
 
@@ -1608,7 +1608,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
       return (
         <div className="glass-panel flex-col flex-center" style={{ padding: '64px 24px', opacity: 0.8, marginTop: '24px' }}>
           <Shield size={42} style={{ marginBottom: '16px', color: 'var(--accent-primary)' }} />
-          <p style={{ color: 'var(--text-secondary)' }}>Kasa verileri yükleniyor...</p>
+          <p style={{ color: 'var(--text-secondary)' }}>{t("vault_loading")}</p>
         </div>
       );
     }
@@ -1618,13 +1618,13 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
         <div className="glass-panel flex-col flex-center" style={{ padding: '48px 24px', marginTop: '24px', borderColor: 'rgba(239, 68, 68, 0.35)' }}>
           <AlertTriangle size={44} style={{ marginBottom: '14px', color: 'var(--accent-danger)' }} />
           <p style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '8px', textAlign: 'center' }}>
-            Kasa verileri buluttan yüklenemedi
+            {t("vault_load_error_title")}
           </p>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '20px', textAlign: 'center', maxWidth: '420px' }}>
             {vaultLoadError}
           </p>
           <button onClick={fetchVault} className="neon-btn primary" style={{ padding: '10px 20px' }}>
-            Tekrar Dene
+            {t("retry")}
           </button>
         </div>
       );
@@ -1635,13 +1635,13 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
         <div className="glass-panel flex-col flex-center" style={{ padding: '48px 24px', marginTop: '24px', borderColor: 'rgba(239, 68, 68, 0.35)' }}>
           <AlertTriangle size={44} style={{ marginBottom: '14px', color: 'var(--accent-danger)' }} />
           <p style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '8px', textAlign: 'center' }}>
-            {decryptionFailedCount} kayıt çözülemedi — Ana şifreniz yanlış olabilir
+            {decryptionFailedCount} {t("decryption_failed_title")}
           </p>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '20px', textAlign: 'center', maxWidth: '420px' }}>
-            Kayıtlarınız uçtan uca şifrelidir. Lütfen kasayı kilitleyip doğru Ana Şifre (Master Password) ile tekrar giriş yapın.
+            {t("decryption_failed_desc")}
           </p>
           <button onClick={onLock} className="neon-btn primary" style={{ padding: '10px 20px' }}>
-            Kilitle ve Tekrar Giriş Yap
+            {t("lock_and_retry")}
           </button>
         </div>
       );
@@ -1654,7 +1654,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
             <>
               <Clock size={48} style={{ marginBottom: '16px', color: '#22c55e' }} />
               <p style={{ color: 'var(--text-secondary)', fontSize: '16px', fontWeight: 500 }}>
-                Harika! 90 günden eski hiçbir şifreniz bulunmuyor.
+                {t("no_old_passwords")}
               </p>
             </>
           ) : (
@@ -1751,11 +1751,11 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                   <div className="flex-col">
-                    <span style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Kart Sahibi</span>
+                    <span style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>{t("card_holder_label")}</span>
                     <span style={{ fontSize: '14px', fontWeight: 500, letterSpacing: '1px' }}>{entry.username.toUpperCase() || t("name_surname")}</span>
                   </div>
                   <div className="flex-col" style={{ alignItems: 'flex-end' }}>
-                    <span style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Son Kullanma</span>
+                    <span style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>{t("expiry_label")}</span>
                     <span style={{ fontSize: '14px', fontFamily: 'monospace' }}>{ccData ? ccData.expiry : "\u2022\u2022/\u2022\u2022"}</span>
                   </div>
                 </div>
@@ -1825,7 +1825,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                 <p 
                   onClick={() => entry.username && handleCopyUsername(entry.username)}
                   style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0', cursor: entry.username ? 'pointer' : 'default' }}
-                  title={entry.username ? "Kullanıcı adını kopyalamak için tıklayın" : undefined}
+                  title={entry.username ? t("click_copy_username") : undefined}
                 >
                   {entry.username}
                 </p>
@@ -1840,7 +1840,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                 onClick={() => handleReveal(entry.id)} 
                 className="neon-btn" 
                 style={{ padding: '10px' }}
-                title="Şifreyi Göster / Gizle"
+                title={t("toggle_password_visibility")}
               >
                 {entry.plaintextPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -1856,7 +1856,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                 onClick={() => handleShareAccount(entry)} 
                 className="neon-btn" 
                 style={{ padding: '10px' }}
-                title="Paylaş / Handoff"
+                title={t("share_handoff")}
               >
                 <Share2 size={18} />
               </button>
@@ -1945,7 +1945,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                 onClick={() => setActiveTab('old')}
                 className="neon-btn flex-center gap-2"
                 style={{ padding: '8px 12px', borderRadius: '12px', fontSize: '12px', background: 'rgba(245, 158, 11, 0.15)', borderColor: 'rgba(245, 158, 11, 0.4)', color: '#f59e0b' }}
-                title={`${oldPasswordsCount} şifre 90+ gündür güncellenmedi`}
+                title={`${oldPasswordsCount} ${t("old_passwords_tooltip")}`}
               >
                 <AlertTriangle size={15} />
                 <span>{oldPasswordsCount}</span>
@@ -2011,7 +2011,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
               )}
               {activeTab === 'old' && (
                 <p style={{ color: '#f59e0b', fontSize: '13px', marginTop: '4px' }}>
-                  ⚠️ {oldPasswordsCount} şifreniz 90 günden uzun süredir güncellenmedi. Güvenliğiniz için bu şifreleri yenilemeniz önerilir.
+                  ⚠️ {oldPasswordsCount} {t("old_passwords_banner")}
                 </p>
               )}
             </div>
@@ -2149,7 +2149,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                 <>
                   <input 
                     type="text" 
-                    placeholder="Kart Üzerindeki İsim" 
+                    placeholder={t("card_name_placeholder")} 
                     value={newUsername}
                     onChange={(e) => setNewUsername(e.target.value)}
                     className="neon-input"
@@ -2157,7 +2157,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                   />
                   <input 
                     type="text" 
-                    placeholder="Kart Numarası (16 Hane)" 
+                    placeholder={t("card_number_placeholder")} 
                     value={ccNumber}
                     onChange={(e) => setCcNumber(e.target.value)}
                     className="neon-input"
@@ -2197,7 +2197,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                   <div style={{ display: 'flex', gap: '12px' }}>
                     <input 
                       type="number" 
-                      placeholder="Tutar (örn. 59.99)" 
+                      placeholder={t("cost_placeholder")} 
                       value={subCost}
                       onChange={(e) => setSubCost(e.target.value)}
                       className="neon-input"
@@ -2224,13 +2224,13 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                   </div>
                   <input 
                     type="text" 
-                    placeholder="Ödeme Yöntemi (örn. Garanti BBVA)" 
+                    placeholder={t("payment_method_placeholder")} 
                     value={subMethod}
                     onChange={(e) => setSubMethod(e.target.value)}
                     className="neon-input"
                   />
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Yenilenme / Ödeme Tarihi</label>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>{t("renewal_date_label")}</label>
                     <input 
                       type="date" 
                       value={subDate}
@@ -2260,7 +2260,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                   <div style={{ position: 'relative' }}>
                     <input 
                       type={showNewPassword ? "text" : "password"} 
-                      placeholder={editingId ? "Değiştirmek istemiyorsanız boş bırakın" : t("password")} 
+                      placeholder={editingId ? t("leave_blank_keep_password") : t("password")} 
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       className="neon-input w-full"
