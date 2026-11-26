@@ -582,7 +582,7 @@ export class HomeComponent implements OnInit {
     },
     {
       id: 'winget',
-      label: 'Windows (Winget)',
+      label: 'Windows (Winget · Pending)',
       cmd: 'winget install DrXendria.Aegis',
     },
   ] as const;
@@ -635,7 +635,7 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.releaseService.loadLatest();
     const os = this.detectedOs();
-    if (os === 'windows') this.activePkgTab.set('winget');
+    if (os === 'windows') this.activePkgTab.set('scoop');
     else if (os === 'linux') this.activePkgTab.set('apt');
     else this.activePkgTab.set('homebrew');
     this.seo.update({
