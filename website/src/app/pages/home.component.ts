@@ -1,10 +1,11 @@
-import { Component, computed, inject, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AnalyticsService } from '../services/analytics.service';
 import { I18nService } from '../services/i18n.service';
 import { OsPlatform, ReleaseAsset, ReleaseService } from '../services/release.service';
 import { SeoService } from '../services/seo.service';
 import { getInstallNotes } from './install-notes.data';
+import { getPkgInstallCopy } from './pkg-install.data';
 
 @Component({
   selector: 'app-home',
@@ -154,6 +155,36 @@ import { getInstallNotes } from './install-notes.data';
               }
             </div>
           </article>
+        </div>
+
+        <div class="pkg-box card">
+          <div class="pkg-head">
+            <div>
+              <h3 class="pkg-title">{{ pkgCopy().heading }}</h3>
+              <p class="pkg-sub">{{ pkgCopy().subtitle }}</p>
+            </div>
+            <div class="pkg-tabs" role="tablist">
+              @for (tab of pkgTabs; track tab.id) {
+                <button
+                  type="button"
+                  role="tab"
+                  class="pkg-tab"
+                  [class.active]="activePkgTab() === tab.id"
+                  [attr.aria-selected]="activePkgTab() === tab.id"
+                  (click)="activePkgTab.set(tab.id)"
+                >
+                  {{ tab.label }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="pkg-cmd-wrap">
+            <pre class="pkg-cmd"><code>{{ currentPkgTab().cmd }}</code></pre>
+            <button type="button" class="btn pkg-copy-btn" (click)="copyPkgCmd()">
+              {{ pkgCopied() ? pkgCopy().copied : pkgCopy().copy }}
+            </button>
+          </div>
         </div>
 
         <details class="install-notes card">
@@ -521,6 +552,56 @@ export class HomeComponent implements OnInit {
   readonly release = this.releaseService.release;
   readonly detectedOs = this.releaseService.detectedOs;
   readonly installNotes = computed(() => getInstallNotes(this.i18n.lang()));
+  readonly pkgCopy = computed(() => getPkgInstallCopy(this.i18n.lang()));
+
+  readonly pkgTabs = [
+    {
+      id: 'homebrew',
+      label: 'macOS (Homebrew)',
+      cmd: 'brew install --cask drxendria/tap/aegis-vault',
+    },
+    {
+      id: 'apt',
+      label: 'Ubuntu / Debian / Mint',
+      cmd: 'echo "deb [trusted=yes] https://drxendria.github.io/Aegis/apt ./" | sudo tee /etc/apt/sources.list.d/aegis.list\nsudo apt update && sudo apt install aegis',
+    },
+    {
+      id: 'dnf',
+      label: 'Fedora / RHEL (DNF)',
+      cmd: 'sudo curl -fsSL https://drxendria.github.io/Aegis/rpm/aegis.repo -o /etc/yum.repos.d/aegis.repo\nsudo dnf install aegis',
+    },
+    {
+      id: 'zypper',
+      label: 'openSUSE (Zypper)',
+      cmd: 'sudo zypper addrepo -f https://drxendria.github.io/Aegis/rpm/ aegis-vault\nsudo zypper install aegis',
+    },
+    {
+      id: 'scoop',
+      label: 'Windows (Scoop)',
+      cmd: 'scoop bucket add drxendria https://github.com/DrXendria/scoop-bucket\nscoop install aegis-vault',
+    },
+    {
+      id: 'winget',
+      label: 'Windows (Winget)',
+      cmd: 'winget install DrXendria.Aegis',
+    },
+  ] as const;
+
+  readonly activePkgTab = signal<string>('homebrew');
+  readonly pkgCopied = signal<boolean>(false);
+  readonly currentPkgTab = computed(
+    () => this.pkgTabs.find((t) => t.id === this.activePkgTab()) ?? this.pkgTabs[0],
+  );
+
+  copyPkgCmd(): void {
+    const cmd = this.currentPkgTab().cmd;
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(cmd).then(() => {
+        this.pkgCopied.set(true);
+        setTimeout(() => this.pkgCopied.set(false), 1800);
+      });
+    }
+  }
 
   onDownload(asset: ReleaseAsset): void {
     this.analytics.trackDownload(asset.platform, asset.format, asset.filename);
@@ -553,6 +634,10 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.releaseService.loadLatest();
+    const os = this.detectedOs();
+    if (os === 'windows') this.activePkgTab.set('winget');
+    else if (os === 'linux') this.activePkgTab.set('apt');
+    else this.activePkgTab.set('homebrew');
     this.seo.update({
       title: 'Aegis Vault — Free Offline Password Manager',
       description:

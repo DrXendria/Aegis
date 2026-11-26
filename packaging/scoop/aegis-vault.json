@@ -1,0 +1,29 @@
+{
+    "version": "0.2.2",
+    "description": "100% local, two-layer zero-knowledge offline password manager",
+    "homepage": "https://aegis-vault-web.onrender.com",
+    "license": "MIT",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/DrXendria/Aegis/releases/download/v0.2.2/Aegis_0.2.2_x64-setup.exe#/dl.7z",
+            "hash": "b503560ef9f1937f6bc8d17e989afe989e0cf2cd86cab91b1f28eab98311a0dc"
+        }
+    },
+    "bin": "aegis.exe",
+    "shortcuts": [
+        [
+            "aegis.exe",
+            "Aegis Vault"
+        ]
+    ],
+    "checkver": {
+        "github": "https://github.com/DrXendria/Aegis"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/DrXendria/Aegis/releases/download/v$version/Aegis_$version_x64-setup.exe#/dl.7z"
+            }
+        }
+    }
+}

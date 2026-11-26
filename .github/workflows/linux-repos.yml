@@ -1,0 +1,148 @@
+name: Publish Linux APT & RPM Repos
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-repos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install repo tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev apt-utils createrepo-c jq curl gnupg
+
+      - name: Download latest .deb and .rpm from GitHub Releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p repo/apt/pool/main repo/rpm/packages
+
+          RELEASE_JSON=$(curl -fsSL \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/latest")
+
+          TAG=$(echo "$RELEASE_JSON" | jq -r '.tag_name')
+          echo "Publishing Linux repos for release: ${TAG}"
+
+          DEB_URL=$(echo "$RELEASE_JSON" | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url' | head -n 1)
+          RPM_URL=$(echo "$RELEASE_JSON" | jq -r '.assets[] | select(.name | endswith(".rpm")) | .browser_download_url' | head -n 1)
+
+          if [ -n "$DEB_URL" ]; then
+            curl -fsSL "$DEB_URL" -o "repo/apt/pool/main/$(basename "$DEB_URL")"
+          fi
+          if [ -n "$RPM_URL" ]; then
+            curl -fsSL "$RPM_URL" -o "repo/rpm/packages/$(basename "$RPM_URL")"
+          fi
+
+      - name: Build APT repository (Debian / Ubuntu)
+        run: |
+          cd repo/apt
+          dpkg-scanpackages --multiversion pool/main > Packages
+          gzip -k -f Packages
+          apt-ftparchive \
+            -o APT::FTPArchive::Release::Origin="Aegis Vault" \
+            -o APT::FTPArchive::Release::Label="Aegis Vault" \
+            -o APT::FTPArchive::Release::Suite="stable" \
+            -o APT::FTPArchive::Release::Codename="stable" \
+            -o APT::FTPArchive::Release::Architectures="amd64" \
+            -o APT::FTPArchive::Release::Components="main" \
+            release . > Release
+
+      - name: Build RPM repository (Fedora / RHEL / CentOS)
+        run: |
+          cd repo/rpm
+          createrepo_c .
+          cat <<'EOF' | sed 's/^          //' > aegis.repo
+          [aegis-vault]
+          name=Aegis Vault Repository
+          baseurl=https://drxendria.github.io/Aegis/rpm/
+          enabled=1
+          gpgcheck=0
+          EOF
+
+      - name: Sign APT repo if GPG_PRIVATE_KEY is configured
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          if [ -z "$GPG_PRIVATE_KEY" ]; then
+            echo "GPG_PRIVATE_KEY not set; publishing unsigned repo."
+            exit 0
+          fi
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          KEY_ID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec/{print $5; exit}')
+          gpg --armor --export "$KEY_ID" > repo/apt/aegis.asc
+          gpg --export "$KEY_ID" > repo/apt/aegis-archive-keyring.gpg
+
+          cd repo/apt
+          if [ -n "$GPG_PASSPHRASE" ]; then
+            echo "$GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --default-key "$KEY_ID" -abs -o Release.gpg Release
+            echo "$GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --default-key "$KEY_ID" --clearsign -o InRelease Release
+          else
+            gpg --batch --yes --default-key "$KEY_ID" -abs -o Release.gpg Release
+            gpg --batch --yes --default-key "$KEY_ID" --clearsign -o InRelease Release
+          fi
+
+      - name: Create landing index.html for GitHub Pages
+        run: |
+          cat <<'EOF' | sed 's/^          //' > repo/index.html
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Aegis Vault — Linux APT &amp; RPM Repositories</title>
+            <style>
+              body { font-family: system-ui, sans-serif; max-width: 720px; margin: 48px auto; padding: 0 20px; background: #0b0d10; color: #f3f5f8; line-height: 1.6; }
+              pre { background: #141820; border: 1px solid #242b36; border-radius: 8px; padding: 14px; overflow-x: auto; font-size: 13px; }
+              a { color: #34d399; }
+            </style>
+          </head>
+          <body>
+            <h1>Aegis Vault — Linux Package Repositories</h1>
+            <p>Official APT (Debian/Ubuntu) and RPM (Fedora/RHEL) repositories for <a href="https://github.com/DrXendria/Aegis">Aegis Vault</a>.</p>
+            <h2>Ubuntu / Debian / Linux Mint (APT)</h2>
+            <pre>echo "deb [trusted=yes] https://drxendria.github.io/Aegis/apt ./" | sudo tee /etc/apt/sources.list.d/aegis.list
+          sudo apt update
+          sudo apt install aegis</pre>
+            <h2>Fedora / RHEL / Rocky (DNF / YUM)</h2>
+            <pre>sudo curl -fsSL https://drxendria.github.io/Aegis/rpm/aegis.repo -o /etc/yum.repos.d/aegis.repo
+          sudo dnf install aegis</pre>
+            <h2>openSUSE (Zypper)</h2>
+            <pre>sudo zypper addrepo -f https://drxendria.github.io/Aegis/rpm/ aegis-vault
+          sudo zypper install aegis</pre>
+          </body>
+          </html>
+          EOF
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: repo
+
+  deploy-repos:
+    needs: build-repos
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
