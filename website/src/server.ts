@@ -13,7 +13,7 @@ const app = express();
 const angularApp = new AngularNodeAppEngine();
 
 const GITHUB_REPO = 'DrXendria/Aegis';
-const FALLBACK_VERSION = '0.2.0';
+const FALLBACK_VERSION = '0.2.2';
 const CACHE_TTL_MS = 15 * 60 * 1000;
 
 interface ReleaseAsset {
@@ -188,7 +188,10 @@ app.get('/api/latest-release', async (_req, res) => {
 
 // SEO: robots.txt
 app.get('/robots.txt', (req, res) => {
-  const origin = process.env['SITE_URL'] || `${req.protocol}://${req.get('host')}`;
+  const origin =
+    process.env['SITE_URL'] ||
+    process.env['RENDER_EXTERNAL_URL'] ||
+    `${req.protocol}://${req.get('host')}`;
   res.type('text/plain').send(
     `User-agent: *\nAllow: /\nDisallow: /api/\n\nSitemap: ${origin}/sitemap.xml\n`,
   );
@@ -196,7 +199,10 @@ app.get('/robots.txt', (req, res) => {
 
 // SEO: Dynamic sitemap.xml
 app.get('/sitemap.xml', (req, res) => {
-  const origin = process.env['SITE_URL'] || `${req.protocol}://${req.get('host')}`;
+  const origin =
+    process.env['SITE_URL'] ||
+    process.env['RENDER_EXTERNAL_URL'] ||
+    `${req.protocol}://${req.get('host')}`;
   const today = new Date().toISOString().split('T')[0];
   const urls = [
     { loc: '/', priority: '1.0', changefreq: 'weekly' },
@@ -245,12 +251,12 @@ app.use((req, res, next) => {
 });
 
 if (isMainModule(import.meta.url) || process.env['pm_id']) {
-  const port = process.env['PORT'] || 4000;
-  app.listen(port, (error) => {
+  const port = Number(process.env['PORT'] || 4000);
+  app.listen(port, '0.0.0.0', (error) => {
     if (error) {
       throw error;
     }
-    console.log(`Aegis Node.js + Angular SSR server listening on http://localhost:${port}`);
+    console.log(`Aegis Node.js + Angular SSR server listening on http://0.0.0.0:${port}`);
   });
 }
 

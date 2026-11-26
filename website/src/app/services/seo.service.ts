@@ -20,7 +20,10 @@ export class SeoService {
     const fullTitle = config.title.includes('Aegis Vault')
       ? config.title
       : `${config.title} | Aegis Vault`;
-    const siteOrigin = 'https://aegisvault.app';
+    const siteOrigin =
+      typeof window !== 'undefined' && window.location?.origin
+        ? window.location.origin
+        : 'https://aegis-vault-web.onrender.com';
     const canonicalUrl = `${siteOrigin}${config.path === '/' ? '' : config.path}`;
 
     this.title.setTitle(fullTitle);
