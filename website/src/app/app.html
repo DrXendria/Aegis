@@ -82,6 +82,9 @@
       <div>
         <h4>Aegis</h4>
         <a routerLink="/privacy">{{ i18n.t().privacy_policy }}</a>
+        <button type="button" class="footer-link-btn" (click)="analytics.reopenPreferences()">
+          {{ cookieCopy().manageLabel }}
+        </button>
         <a href="https://github.com/DrXendria/Aegis" target="_blank" rel="noopener noreferrer">GitHub</a>
       </div>
     </div>
@@ -91,3 +94,5 @@
     <span>MIT License</span>
   </div>
 </footer>
+
+<app-cookie-banner />

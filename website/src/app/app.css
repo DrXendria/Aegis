@@ -126,14 +126,22 @@
   color: var(--text);
 }
 
-.footer-cols a {
+.footer-cols a,
+.footer-link-btn {
   display: block;
   color: var(--text-muted);
   font-size: 13.5px;
   margin-bottom: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: start;
 }
 
-.footer-cols a:hover {
+.footer-cols a:hover,
+.footer-link-btn:hover {
   color: var(--text);
 }
 

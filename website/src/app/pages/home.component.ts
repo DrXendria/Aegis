@@ -1,7 +1,8 @@
 import { Component, computed, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AnalyticsService } from '../services/analytics.service';
 import { I18nService } from '../services/i18n.service';
-import { OsPlatform, ReleaseService } from '../services/release.service';
+import { OsPlatform, ReleaseAsset, ReleaseService } from '../services/release.service';
 import { SeoService } from '../services/seo.service';
 
 @Component({
@@ -26,7 +27,7 @@ import { SeoService } from '../services/seo.service';
           </p>
 
           <div class="hero-actions">
-            <a [href]="primaryAsset().url" class="btn btn-primary hero-primary-btn">
+            <a [href]="primaryAsset().url" (click)="onDownload(primaryAsset())" class="btn btn-primary hero-primary-btn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="7 10 12 15 17 10"/>
@@ -109,7 +110,7 @@ import { SeoService } from '../services/seo.service';
             <p>Windows 10 &amp; 11 (64-bit)</p>
             <div class="asset-list">
               @for (asset of assetsByOs('windows'); track asset.filename) {
-                <a [href]="asset.url" class="asset-btn">
+                <a [href]="asset.url" (click)="onDownload(asset)" class="asset-btn">
                   <span>{{ asset.label }}</span>
                   <code>{{ asset.format }}</code>
                 </a>
@@ -127,7 +128,7 @@ import { SeoService } from '../services/seo.service';
             <p>Apple Silicon (M1–M4)</p>
             <div class="asset-list">
               @for (asset of assetsByOs('macos'); track asset.filename) {
-                <a [href]="asset.url" class="asset-btn">
+                <a [href]="asset.url" (click)="onDownload(asset)" class="asset-btn">
                   <span>{{ asset.label }}</span>
                   <code>{{ asset.format }}</code>
                 </a>
@@ -145,7 +146,7 @@ import { SeoService } from '../services/seo.service';
             <p>Fedora, Ubuntu, Debian, Arch</p>
             <div class="asset-list">
               @for (asset of assetsByOs('linux'); track asset.filename) {
-                <a [href]="asset.url" class="asset-btn">
+                <a [href]="asset.url" (click)="onDownload(asset)" class="asset-btn">
                   <span>{{ asset.label }}</span>
                   <code>{{ asset.format }}</code>
                 </a>
@@ -495,10 +496,15 @@ import { SeoService } from '../services/seo.service';
 export class HomeComponent implements OnInit {
   private readonly releaseService = inject(ReleaseService);
   private readonly seo = inject(SeoService);
+  private readonly analytics = inject(AnalyticsService);
   readonly i18n = inject(I18nService);
 
   readonly release = this.releaseService.release;
   readonly detectedOs = this.releaseService.detectedOs;
+
+  onDownload(asset: ReleaseAsset): void {
+    this.analytics.trackDownload(asset.platform, asset.format, asset.filename);
+  }
 
   readonly primaryAsset = computed(() =>
     this.releaseService.primaryAssetFor(this.detectedOs()),

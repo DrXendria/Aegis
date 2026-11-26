@@ -126,6 +126,92 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+// Node.js API: Public runtime config (GA4 Measurement ID from Render env var)
+app.get('/api/config', (_req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=300');
+  res.json({
+    gaMeasurementId: (process.env['GA_MEASUREMENT_ID'] || '').trim(),
+  });
+});
+
+interface StatsPayload {
+  totalDownloads: number;
+  byPlatform: { windows: number; macos: number; linux: number; other: number };
+  latestVersion: string;
+  releasesCount: number;
+  updatedAt: string;
+}
+
+let cachedStats: { data: StatsPayload; expiresAt: number } | null = null;
+
+// Node.js API: Cached GitHub Releases download statistics
+app.get('/api/stats', async (_req, res) => {
+  if (cachedStats && cachedStats.expiresAt > Date.now()) {
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.json(cachedStats.data);
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=30`,
+      {
+        headers: {
+          Accept: 'application/vnd.github+json',
+          'User-Agent': 'aegis-web-ssr',
+        },
+        signal: AbortSignal.timeout(4000),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`GitHub API HTTP ${response.status}`);
+    }
+
+    const releases = (await response.json()) as Array<{
+      tag_name?: string;
+      assets?: Array<{ name: string; download_count?: number }>;
+    }>;
+
+    const byPlatform = { windows: 0, macos: 0, linux: 0, other: 0 };
+    let totalDownloads = 0;
+
+    for (const rel of releases) {
+      for (const asset of rel.assets || []) {
+        const count = asset.download_count || 0;
+        totalDownloads += count;
+        const meta = classifyAsset(asset.name);
+        if (meta) {
+          byPlatform[meta.platform] += count;
+        } else {
+          byPlatform.other += count;
+        }
+      }
+    }
+
+    const payload: StatsPayload = {
+      totalDownloads,
+      byPlatform,
+      latestVersion: (releases[0]?.tag_name || `v${FALLBACK_VERSION}`).replace(/^v/i, ''),
+      releasesCount: releases.length,
+      updatedAt: new Date().toISOString(),
+    };
+
+    cachedStats = { data: payload, expiresAt: Date.now() + CACHE_TTL_MS };
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.json(payload);
+  } catch {
+    res.setHeader('Cache-Control', 'public, max-age=60');
+    res.json({
+      totalDownloads: 0,
+      byPlatform: { windows: 0, macos: 0, linux: 0, other: 0 },
+      latestVersion: FALLBACK_VERSION,
+      releasesCount: 0,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+});
+
 // Node.js API: Cached GitHub Releases proxy
 app.get('/api/latest-release', async (_req, res) => {
   if (cachedRelease && cachedRelease.expiresAt > Date.now()) {
