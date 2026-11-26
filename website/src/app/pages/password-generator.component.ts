@@ -1,6 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Component, computed, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { I18nService } from '../services/i18n.service';
 import { SeoService } from '../services/seo.service';
 
 @Component({
@@ -12,11 +13,11 @@ import { SeoService } from '../services/seo.service';
       <div class="container tool-wrap">
         <div class="eyebrow">
           <span class="status-dot"></span>
-          <span>Generated locally in your browser</span>
+          <span>{{ i18n.t().gen_badge }}</span>
         </div>
-        <h1 class="section-title" style="margin-top: 12px;">Password Generator</h1>
+        <h1 class="section-title" style="margin-top: 12px;">{{ i18n.t().gen_title }}</h1>
         <p class="section-subtitle">
-          Create strong, random passwords without sending anything over the internet.
+          {{ i18n.t().gen_subtitle }}
         </p>
 
         <div class="card generator-box">
@@ -24,16 +25,16 @@ import { SeoService } from '../services/seo.service';
             <code class="password-value">{{ password() }}</code>
             <div class="pw-actions">
               <button type="button" class="btn btn-primary" (click)="copyPassword()">
-                {{ copied() ? 'Copied' : 'Copy' }}
+                {{ copied() ? i18n.t().copied : i18n.t().copy }}
               </button>
-              <button type="button" class="btn" (click)="regenerate()">New</button>
+              <button type="button" class="btn" (click)="regenerate()">{{ i18n.t().new_btn }}</button>
             </div>
           </div>
 
           <div class="strength-bar">
             <div class="strength-meta">
-              <span>Strength: <strong [style.color]="strengthColor()">{{ strengthLabel() }}</strong></span>
-              <span>{{ entropyBits() }} bits of entropy</span>
+              <span>{{ i18n.t().strength }}: <strong [style.color]="strengthColor()">{{ strengthLabel() }}</strong></span>
+              <span>{{ entropyBits() }} {{ i18n.t().entropy_unit }}</span>
             </div>
             <div class="track">
               <div class="fill" [style.width.%]="strengthPercent()" [style.background]="strengthColor()"></div>
@@ -42,7 +43,7 @@ import { SeoService } from '../services/seo.service';
 
           <div class="controls">
             <label class="slider-label">
-              <span>Length: <strong>{{ length() }} characters</strong></span>
+              <span>{{ i18n.t().length_label }}: <strong>{{ length() }} {{ i18n.t().chars_unit }}</strong></span>
               <input
                 type="range"
                 min="8"
@@ -172,6 +173,7 @@ import { SeoService } from '../services/seo.service';
 export class PasswordGeneratorComponent implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly seo = inject(SeoService);
+  readonly i18n = inject(I18nService);
 
   readonly length = signal(20);
   readonly useUpper = signal(true);

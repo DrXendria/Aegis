@@ -6,13 +6,45 @@
     </a>
 
     <nav class="nav-links" aria-label="Primary Navigation">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Overview</a>
-      <a routerLink="/tools/password-generator" routerLinkActive="active">Password Generator</a>
-      <a routerLink="/guides" routerLinkActive="active">Guides</a>
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">{{ i18n.t().nav_overview }}</a>
+      <a routerLink="/tools/password-generator" routerLinkActive="active">{{ i18n.t().nav_generator }}</a>
+      <a routerLink="/guides" routerLinkActive="active">{{ i18n.t().nav_guides }}</a>
       <a href="https://github.com/DrXendria/Aegis" target="_blank" rel="noopener noreferrer">GitHub</a>
     </nav>
 
-    <a routerLink="/" fragment="downloads" class="btn btn-primary nav-cta">Download</a>
+    <div class="header-controls">
+      <select
+        class="lang-select"
+        aria-label="Language"
+        [value]="i18n.lang()"
+        (change)="onLangChange($event)"
+      >
+        @for (item of i18n.languages; track item.code) {
+          <option [value]="item.code">{{ item.label }}</option>
+        }
+      </select>
+
+      <button
+        type="button"
+        class="icon-btn"
+        (click)="themeService.toggle()"
+        [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+        [title]="themeService.theme() === 'dark' ? 'Light mode' : 'Dark mode'"
+      >
+        @if (themeService.theme() === 'dark') {
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+          </svg>
+        } @else {
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        }
+      </button>
+
+      <a routerLink="/" fragment="downloads" class="btn btn-primary nav-cta">{{ i18n.t().nav_download }}</a>
+    </div>
   </div>
 </header>
 
@@ -27,33 +59,31 @@
         <img src="favicon.svg" alt="Aegis Vault" width="22" height="22" />
         <span>Aegis Vault</span>
       </div>
-      <p class="footer-desc">
-        Free, open-source offline password manager for Windows, macOS, and Linux.
-      </p>
+      <p class="footer-desc">{{ i18n.t().footer_desc }}</p>
     </div>
 
     <div class="footer-cols">
       <div>
-        <h4>Download</h4>
-        <a routerLink="/" fragment="downloads">All Platforms</a>
-        <a routerLink="/tools/password-generator">Password Generator</a>
-        <a href="https://github.com/DrXendria/Aegis/releases" target="_blank" rel="noopener noreferrer">Release Notes</a>
+        <h4>{{ i18n.t().nav_download }}</h4>
+        <a routerLink="/" fragment="downloads">{{ i18n.t().other_platforms }}</a>
+        <a routerLink="/tools/password-generator">{{ i18n.t().nav_generator }}</a>
+        <a href="https://github.com/DrXendria/Aegis/releases" target="_blank" rel="noopener noreferrer">GitHub Releases</a>
       </div>
       <div>
-        <h4>Learn</h4>
-        <a routerLink="/guides">Security Guides</a>
-        <a routerLink="/guides/zero-knowledge-encryption">Encryption Model</a>
-        <a routerLink="/guides/migrate-from-chrome">Import from Chrome</a>
+        <h4>{{ i18n.t().nav_guides }}</h4>
+        <a routerLink="/guides">{{ i18n.t().nav_guides }}</a>
+        <a routerLink="/guides/zero-knowledge-encryption">AES-256-GCM</a>
+        <a routerLink="/guides/migrate-from-chrome">Chrome / Bitwarden</a>
       </div>
       <div>
-        <h4>Project</h4>
-        <a routerLink="/privacy">Privacy Policy</a>
-        <a href="https://github.com/DrXendria/Aegis" target="_blank" rel="noopener noreferrer">Source Code</a>
+        <h4>Aegis</h4>
+        <a routerLink="/privacy">{{ i18n.t().privacy_policy }}</a>
+        <a href="https://github.com/DrXendria/Aegis" target="_blank" rel="noopener noreferrer">GitHub</a>
       </div>
     </div>
   </div>
   <div class="container footer-bottom">
     <span>&copy; {{ currentYear }} DrXendria</span>
-    <span>MIT License &bull; Local-first software</span>
+    <span>MIT License</span>
   </div>
 </footer>

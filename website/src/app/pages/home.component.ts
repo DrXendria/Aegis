@@ -1,5 +1,6 @@
 import { Component, computed, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { I18nService } from '../services/i18n.service';
 import { OsPlatform, ReleaseService } from '../services/release.service';
 import { SeoService } from '../services/seo.service';
 
@@ -13,16 +14,15 @@ import { SeoService } from '../services/seo.service';
         <div class="hero-copy">
           <div class="eyebrow">
             <span class="status-dot"></span>
-            <span>Version {{ release().version }} &bull; Free &amp; Open Source</span>
+            <span>v{{ release().version }} &bull; {{ i18n.t().hero_badge }}</span>
           </div>
 
           <h1 class="hero-title">
-            A password manager that stays on your computer.
+            {{ i18n.t().hero_title }}
           </h1>
 
           <p class="hero-desc">
-            No cloud account to get breached, no subscription, and no hidden tracking.
-            Aegis keeps your logins, cards, and notes locked in an encrypted local file with automatic two-week backups.
+            {{ i18n.t().hero_desc }}
           </p>
 
           <div class="hero-actions">
@@ -32,14 +32,14 @@ import { SeoService } from '../services/seo.service';
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
-              <span>Download for {{ osLabel() }}</span>
+              <span>{{ i18n.t().download_for }} {{ osLabel() }}</span>
               <span class="format-pill">{{ primaryAsset().format }}</span>
             </a>
-            <a href="#downloads" class="btn">Other platforms</a>
+            <a href="#downloads" class="btn">{{ i18n.t().other_platforms }}</a>
           </div>
 
           <p class="hero-footnote">
-            Windows, macOS, and Linux &bull; MIT License &bull; Works completely offline
+            {{ i18n.t().hero_footnote }}
           </p>
         </div>
 
@@ -88,13 +88,13 @@ import { SeoService } from '../services/seo.service';
       <div class="container">
         <div class="section-head-row">
           <div>
-            <h2 class="section-title">Download Aegis {{ release().tag }}</h2>
+            <h2 class="section-title">{{ i18n.t().downloads_title }} {{ release().tag }}</h2>
             <p class="section-subtitle">
-              Pick the installer for your system. Everything runs locally right out of the box.
+              {{ i18n.t().downloads_subtitle }}
             </p>
           </div>
           <a [href]="release().releaseUrl" target="_blank" rel="noopener noreferrer" class="btn release-link">
-            View on GitHub &rarr;
+            {{ i18n.t().view_github }} &rarr;
           </a>
         </div>
 
@@ -103,7 +103,7 @@ import { SeoService } from '../services/seo.service';
             <div class="platform-head">
               <h3>Windows</h3>
               @if (detectedOs() === 'windows') {
-                <span class="rec-tag">Your OS</span>
+                <span class="rec-tag">{{ i18n.t().your_os }}</span>
               }
             </div>
             <p>Windows 10 &amp; 11 (64-bit)</p>
@@ -121,7 +121,7 @@ import { SeoService } from '../services/seo.service';
             <div class="platform-head">
               <h3>macOS</h3>
               @if (detectedOs() === 'macos') {
-                <span class="rec-tag">Your OS</span>
+                <span class="rec-tag">{{ i18n.t().your_os }}</span>
               }
             </div>
             <p>Apple Silicon (M1–M4)</p>
@@ -139,7 +139,7 @@ import { SeoService } from '../services/seo.service';
             <div class="platform-head">
               <h3>Linux</h3>
               @if (detectedOs() === 'linux') {
-                <span class="rec-tag">Your OS</span>
+                <span class="rec-tag">{{ i18n.t().your_os }}</span>
               }
             </div>
             <p>Fedora, Ubuntu, Debian, Arch</p>
@@ -158,41 +158,41 @@ import { SeoService } from '../services/seo.service';
 
     <section class="section">
       <div class="container">
-        <h2 class="section-title">Built for peace of mind</h2>
+        <h2 class="section-title">{{ i18n.t().features_title }}</h2>
         <p class="section-subtitle">
-          Simple day-to-day workflow backed by strict local cryptography and crash-safe saves.
+          {{ i18n.t().features_subtitle }}
         </p>
 
         <div class="feature-grid">
           <div class="feature-item">
             <span class="feature-num">01</span>
-            <h3>Two-layer local lock</h3>
-            <p>Sign in with your local account password, then unlock your encrypted vault with a separate Master Password. Supports multiple isolated profiles on one computer.</p>
+            <h3>{{ i18n.t().f1_title }}</h3>
+            <p>{{ i18n.t().f1_desc }}</p>
           </div>
           <div class="feature-item">
             <span class="feature-num">02</span>
-            <h3>Full entry encryption</h3>
-            <p>Site names, usernames, passwords, cards, and notes are encrypted together with AES-256-GCM and 600,000-round PBKDF2 key derivation.</p>
+            <h3>{{ i18n.t().f2_title }}</h3>
+            <p>{{ i18n.t().f2_desc }}</p>
           </div>
           <div class="feature-item">
             <span class="feature-num">03</span>
-            <h3>Crash-safe &amp; auto-backed up</h3>
-            <p>Every change writes safely to a temporary file first, keeps the previous working copy as <code>.bak</code>, and saves an encrypted backup every 14 days.</p>
+            <h3>{{ i18n.t().f3_title }}</h3>
+            <p>{{ i18n.t().f3_desc }}</p>
           </div>
           <div class="feature-item">
             <span class="feature-num">04</span>
-            <h3>Switch in one minute</h3>
-            <p>Import existing passwords from Chrome, Bitwarden, LastPass, or previous Aegis backups without manual re-entry.</p>
+            <h3>{{ i18n.t().f4_title }}</h3>
+            <p>{{ i18n.t().f4_desc }}</p>
           </div>
           <div class="feature-item">
             <span class="feature-num">05</span>
-            <h3>Subscriptions &amp; cards</h3>
-            <p>Keep track of renewal dates and monthly costs across 18 currencies alongside your logins and secure notes.</p>
+            <h3>{{ i18n.t().f5_title }}</h3>
+            <p>{{ i18n.t().f5_desc }}</p>
           </div>
           <div class="feature-item">
             <span class="feature-num">06</span>
-            <h3>Quiet security habits</h3>
-            <p>Copied passwords clear from your clipboard after 30 seconds, and logins untouched for 90+ days get a gentle reminder.</p>
+            <h3>{{ i18n.t().f6_title }}</h3>
+            <p>{{ i18n.t().f6_desc }}</p>
           </div>
         </div>
       </div>
@@ -201,11 +201,11 @@ import { SeoService } from '../services/seo.service';
     <section class="section">
       <div class="container faq-layout">
         <div>
-          <h2 class="section-title">Common questions</h2>
+          <h2 class="section-title">{{ i18n.t().faq_title }}</h2>
           <p class="section-subtitle">
-            Straight answers about how your data is stored and protected.
+            {{ i18n.t().faq_subtitle }}
           </p>
-          <a routerLink="/guides" class="btn">Read security guides &rarr;</a>
+          <a routerLink="/guides" class="btn">{{ i18n.t().read_guides }} &rarr;</a>
         </div>
 
         <div class="faq-list">
@@ -495,6 +495,7 @@ import { SeoService } from '../services/seo.service';
 export class HomeComponent implements OnInit {
   private readonly releaseService = inject(ReleaseService);
   private readonly seo = inject(SeoService);
+  readonly i18n = inject(I18nService);
 
   readonly release = this.releaseService.release;
   readonly detectedOs = this.releaseService.detectedOs;
