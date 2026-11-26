@@ -126,11 +126,11 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-// Node.js API: Public runtime config (GA4 Measurement ID from Render env var)
+// Node.js API: Public runtime config (GA4 Measurement ID)
 app.get('/api/config', (_req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=300');
   res.json({
-    gaMeasurementId: (process.env['GA_MEASUREMENT_ID'] || '').trim(),
+    gaMeasurementId: (process.env['GA_MEASUREMENT_ID'] || 'G-1G6WBEGWGR').trim(),
   });
 });
 

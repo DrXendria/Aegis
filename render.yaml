@@ -16,3 +16,5 @@ services:
         value: "false"
       - key: NG_ALLOWED_HOSTS
         value: "aegis-vault-web.onrender.com,*.onrender.com"
+      - key: GA_MEASUREMENT_ID
+        value: "G-1G6WBEGWGR"
