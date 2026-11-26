@@ -10,7 +10,14 @@ import { join } from 'node:path';
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
-const angularApp = new AngularNodeAppEngine();
+const angularApp = new AngularNodeAppEngine({
+  allowedHosts: [
+    'aegis-vault-web.onrender.com',
+    '*.onrender.com',
+    'localhost',
+    '127.0.0.1',
+  ],
+});
 
 const GITHUB_REPO = 'DrXendria/Aegis';
 const FALLBACK_VERSION = '0.2.2';
