@@ -1,6 +1,6 @@
 app-id: com.drxendria.aegis
 runtime: org.gnome.Platform
-runtime-version: '47'
+runtime-version: '51'
 sdk: org.gnome.Sdk
 command: aegis
 finish-args:
@@ -13,7 +13,7 @@ modules:
   - name: aegis
     buildsystem: simple
     build-commands:
-      - ar x Aegis_0.2.0_amd64.deb
+      - ar x Aegis_0.2.2_amd64.deb
       - tar -xf data.tar.gz
       - install -Dm755 usr/bin/aegis /app/bin/aegis
       - install -Dm644 usr/share/applications/Aegis.desktop /app/share/applications/com.drxendria.aegis.desktop
@@ -24,7 +24,7 @@ modules:
       - install -Dm644 com.drxendria.aegis.metainfo.xml /app/share/metainfo/com.drxendria.aegis.metainfo.xml
     sources:
       - type: file
-        url: https://github.com/DrXendria/Aegis/releases/download/v0.2.0/Aegis_0.2.0_amd64.deb
-        sha256: 6c76c08ef8c5331934320c0926d887d24deccb5a84d04f0b7d420a037d06dd60
+        url: https://github.com/DrXendria/Aegis/releases/download/v0.2.2/Aegis_0.2.2_amd64.deb
+        sha256: a991bae29f624e886627387a1bdb18ed2b90581f834b45d41b068784e817ac63
       - type: file
         path: com.drxendria.aegis.metainfo.xml

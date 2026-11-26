@@ -33,6 +33,11 @@
   </screenshots>
   <content_rating type="oars-1.1" />
   <releases>
+    <release version="0.2.2" date="2026-11-26">
+      <description>
+        <p>Completed full 25-language translations, persistent language settings, and custom themed confirmation dialogs.</p>
+      </description>
+    </release>
     <release version="0.2.0" date="2026-11-24">
       <description>
         <p>Switched to 100% local two-layer encrypted vault architecture with atomic saves and 2-week encrypted disk backups.</p>
