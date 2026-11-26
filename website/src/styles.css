@@ -176,3 +176,64 @@ code {
     padding: 52px 0;
   }
 }
+
+/* First-time installation notes */
+.install-notes {
+  margin-top: 18px;
+  padding: 16px 20px;
+}
+
+.install-notes summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.install-notes summary::after {
+  content: '+';
+  font-size: 16px;
+  color: var(--text-faint);
+}
+
+.install-notes[open] summary {
+  color: var(--text);
+  margin-bottom: 14px;
+}
+
+.install-notes[open] summary::after {
+  content: '−';
+}
+
+.install-notes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.install-notes-grid strong {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+
+.install-notes-grid p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+@media (max-width: 900px) {
+  .install-notes-grid {
+    grid-template-columns: 1fr;
+  }
+}

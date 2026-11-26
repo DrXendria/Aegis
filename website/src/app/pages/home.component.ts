@@ -4,6 +4,7 @@ import { AnalyticsService } from '../services/analytics.service';
 import { I18nService } from '../services/i18n.service';
 import { OsPlatform, ReleaseAsset, ReleaseService } from '../services/release.service';
 import { SeoService } from '../services/seo.service';
+import { getInstallNotes } from './install-notes.data';
 
 @Component({
   selector: 'app-home',
@@ -154,6 +155,24 @@ import { SeoService } from '../services/seo.service';
             </div>
           </article>
         </div>
+
+        <details class="install-notes card">
+          <summary>{{ installNotes().heading }}</summary>
+          <div class="install-notes-grid">
+            <div>
+              <strong>{{ installNotes().macosTitle }}</strong>
+              <p>{{ installNotes().macosBody }}</p>
+            </div>
+            <div>
+              <strong>{{ installNotes().windowsTitle }}</strong>
+              <p>{{ installNotes().windowsBody }}</p>
+            </div>
+            <div>
+              <strong>{{ installNotes().linuxTitle }}</strong>
+              <p>{{ installNotes().linuxBody }}</p>
+            </div>
+          </div>
+        </details>
       </div>
     </section>
 
@@ -501,6 +520,7 @@ export class HomeComponent implements OnInit {
 
   readonly release = this.releaseService.release;
   readonly detectedOs = this.releaseService.detectedOs;
+  readonly installNotes = computed(() => getInstallNotes(this.i18n.lang()));
 
   onDownload(asset: ReleaseAsset): void {
     this.analytics.trackDownload(asset.platform, asset.format, asset.filename);

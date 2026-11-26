@@ -32,16 +32,22 @@ export class SeoService {
     this.meta.updateTag({ name: 'robots', content: 'index, follow' });
 
     // Open Graph
+    const ogImageUrl = `${siteOrigin}/og-image.png`;
     this.meta.updateTag({ property: 'og:title', content: fullTitle });
     this.meta.updateTag({ property: 'og:description', content: config.description });
     this.meta.updateTag({ property: 'og:type', content: config.type || 'website' });
     this.meta.updateTag({ property: 'og:url', content: canonicalUrl });
     this.meta.updateTag({ property: 'og:site_name', content: 'Aegis Vault' });
+    this.meta.updateTag({ property: 'og:image', content: ogImageUrl });
+    this.meta.updateTag({ property: 'og:image:width', content: '1200' });
+    this.meta.updateTag({ property: 'og:image:height', content: '630' });
+    this.meta.updateTag({ property: 'og:image:alt', content: fullTitle });
 
     // Twitter Card
     this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
     this.meta.updateTag({ name: 'twitter:title', content: fullTitle });
     this.meta.updateTag({ name: 'twitter:description', content: config.description });
+    this.meta.updateTag({ name: 'twitter:image', content: ogImageUrl });
 
     this.setCanonical(canonicalUrl);
     this.setJsonLd(config.jsonLd || null);
