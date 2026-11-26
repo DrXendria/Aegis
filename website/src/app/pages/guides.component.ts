@@ -2,53 +2,13 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { I18nService } from '../services/i18n.service';
 import { SeoService } from '../services/seo.service';
+import { GUIDES_A, type SecurityGuide } from './guides.data-a';
+import { GUIDES_B } from './guides.data-b';
 
-interface SecurityGuide {
-  slug: string;
-  title: string;
-  summary: string;
-  readTime: string;
-  paragraphs: string[];
-}
-
-const GUIDES: SecurityGuide[] = [
-  {
-    slug: 'zero-knowledge-encryption',
-    title: 'How AES-256-GCM & 600,000-Round PBKDF2 Protect Your Vault',
-    summary:
-      'A clear look at key derivation, random initialization vectors (IVs), and authenticated encryption in Aegis Vault.',
-    readTime: '4 min read',
-    paragraphs: [
-      'A password manager is only as strong as its key derivation function and cipher mode. Aegis Vault derives a 256-bit AES key from your Master Password using PBKDF2-HMAC-SHA256 with 600,000 iterations, slowing down offline brute-force attempts dramatically.',
-      'Every entry in your vault—including the site name, username, password, card details, and notes—is encrypted using AES-256-GCM with a freshly generated 96-bit random Initialization Vector (IV).',
-      'Because GCM is an authenticated encryption mode, any tampering or corruption of the encrypted vault file is detected immediately during decryption. Combined with a key verification check, Aegis rejects a wrong Master Password right away instead of opening an empty vault.',
-    ],
-  },
-  {
-    slug: 'migrate-from-chrome',
-    title: 'How to Move Passwords from Chrome, Bitwarden, or LastPass to an Offline Vault',
-    summary:
-      'Step-by-step instructions to export browser-saved passwords and lock them inside a local encrypted .aegis vault.',
-    readTime: '3 min read',
-    paragraphs: [
-      'Saving passwords in a browser is convenient, but browser profiles are a frequent target for infostealers. Moving credentials into a Master-Password-locked local vault reduces your exposure.',
-      'In Google Chrome, open chrome://password-manager/settings and export your passwords as a CSV file. In Bitwarden or LastPass, open Settings and choose Export Vault (CSV or JSON).',
-      'Open Aegis Vault, go to Data Management, click Import Data, and select the exported file. Aegis categorizes and encrypts every record locally. Remember to permanently delete the temporary CSV file once imported.',
-    ],
-  },
-  {
-    slug: 'local-first-vs-cloud',
-    title: 'Local-First vs. Cloud Password Managers',
-    summary:
-      'Comparing cloud convenience against zero-server-exposure security, atomic backups, and user-controlled sync.',
-    readTime: '4 min read',
-    paragraphs: [
-      'Cloud password managers make multi-device sync effortless, but they also create centralized targets and introduce risks like misconfigured permissions, service outages, or subscription lock-in.',
-      'A local-first vault keeps your encrypted .aegis file strictly on your machine. No remote API can be probed or wiped by a third party.',
-      'With crash-safe atomic saves (.tmp + .bak) and automatic 14-day encrypted backups in Documents/Aegis-Backups, you get dependable local durability—and if you want sync across devices, you can sync the already-encrypted file through Syncthing, Nextcloud, or your own drive.',
-    ],
-  },
-];
+const ALL_GUIDES: Record<string, SecurityGuide[]> = {
+  ...GUIDES_A,
+  ...GUIDES_B,
+};
 
 @Component({
   selector: 'app-guides',
@@ -75,7 +35,7 @@ const GUIDES: SecurityGuide[] = [
           </p>
 
           <div class="guide-list">
-            @for (g of guides; track g.slug) {
+            @for (g of guides(); track g.slug) {
               <a [routerLink]="['/guides', g.slug]" class="guide-row">
                 <div>
                   <span class="read-time">{{ g.readTime }}</span>
@@ -121,7 +81,7 @@ const GUIDES: SecurityGuide[] = [
       transition: opacity 0.14s ease;
     }
     .guide-row:hover h2 {
-      color: #ffffff;
+      color: var(--text);
     }
     .guide-row:hover .arrow {
       transform: translateX(4px);
@@ -157,7 +117,7 @@ const GUIDES: SecurityGuide[] = [
     .article-body p {
       margin: 0;
       font-size: 16px;
-      color: #d4dae6;
+      color: var(--text);
       line-height: 1.75;
     }
   `,
@@ -167,13 +127,16 @@ export class GuidesComponent implements OnInit {
   private readonly seo = inject(SeoService);
   readonly i18n = inject(I18nService);
 
-  readonly guides = GUIDES;
   private readonly currentSlug = signal<string | null>(null);
+
+  readonly guides = computed<SecurityGuide[]>(
+    () => ALL_GUIDES[this.i18n.lang()] ?? ALL_GUIDES['en'],
+  );
 
   readonly activeGuide = computed(() => {
     const slug = this.currentSlug();
     if (!slug) return null;
-    return GUIDES.find((g) => g.slug === slug) || null;
+    return this.guides().find((g) => g.slug === slug) || null;
   });
 
   ngOnInit(): void {
