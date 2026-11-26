@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     rootDir: website
-    buildCommand: npm ci && NG_CLI_ANALYTICS=false npm run build
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: npm run serve:ssr:aegis-web
     healthCheckPath: /api/health
     envVars:
@@ -12,3 +12,5 @@ services:
         value: production
       - key: NODE_VERSION
         value: 22.14.0
+      - key: NG_CLI_ANALYTICS
+        value: "false"
