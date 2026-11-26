@@ -1,4 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { I18nService } from '../services/i18n.service';
 import { SeoService } from '../services/seo.service';
 
 @Component({
@@ -7,7 +8,7 @@ import { SeoService } from '../services/seo.service';
   template: `
     <section class="section" style="border-top: none;">
       <div class="container" style="max-width: 760px;">
-        <h1 class="section-title">Privacy Policy</h1>
+        <h1 class="section-title">{{ i18n.t().privacy_title }}</h1>
         <p class="section-subtitle">Last updated: November 2026</p>
 
         <article class="card" style="padding: 28px; display: flex; flex-direction: column; gap: 16px;">
@@ -37,6 +38,7 @@ import { SeoService } from '../services/seo.service';
 })
 export class PrivacyComponent implements OnInit {
   private readonly seo = inject(SeoService);
+  readonly i18n = inject(I18nService);
 
   ngOnInit(): void {
     this.seo.update({

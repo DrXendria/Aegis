@@ -1,5 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { I18nService } from '../services/i18n.service';
 import { SeoService } from '../services/seo.service';
 
 interface SecurityGuide {
@@ -57,7 +58,7 @@ const GUIDES: SecurityGuide[] = [
     <section class="section" style="border-top: none;">
       <div class="container guides-wrap">
         @if (activeGuide(); as guide) {
-          <a routerLink="/guides" class="back-link">&larr; All guides</a>
+          <a routerLink="/guides" class="back-link">&larr; {{ i18n.t().back_guides }}</a>
           <p class="read-meta">{{ guide.readTime }}</p>
           <h1 class="section-title">{{ guide.title }}</h1>
           <p class="section-subtitle">{{ guide.summary }}</p>
@@ -68,9 +69,9 @@ const GUIDES: SecurityGuide[] = [
             }
           </article>
         } @else {
-          <h1 class="section-title">Security Guides</h1>
+          <h1 class="section-title">{{ i18n.t().guides_title }}</h1>
           <p class="section-subtitle">
-            Short, practical notes on offline encryption, backups, and moving away from browser password storage.
+            {{ i18n.t().guides_subtitle }}
           </p>
 
           <div class="guide-list">
@@ -164,6 +165,7 @@ const GUIDES: SecurityGuide[] = [
 export class GuidesComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly seo = inject(SeoService);
+  readonly i18n = inject(I18nService);
 
   readonly guides = GUIDES;
   private readonly currentSlug = signal<string | null>(null);

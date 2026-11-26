@@ -51,7 +51,7 @@ import { SeoService } from '../services/seo.service';
             <span class="window-title">Aegis Vault — Local</span>
           </div>
           <div class="window-body">
-            <div class="preview-search">Search 42 encrypted entries...</div>
+            <div class="preview-search">{{ i18n.t().preview_search }}</div>
             <div class="preview-list">
               <div class="preview-row">
                 <div>
@@ -209,7 +209,7 @@ import { SeoService } from '../services/seo.service';
         </div>
 
         <div class="faq-list">
-          @for (item of faqs; track item.q) {
+          @for (item of faqs(); track item.q) {
             <details class="faq-item">
               <summary>{{ item.q }}</summary>
               <p>{{ item.a }}</p>
@@ -511,24 +511,15 @@ export class HomeComponent implements OnInit {
     return 'Windows';
   });
 
-  readonly faqs = [
-    {
-      q: 'Does Aegis Vault upload my passwords to any cloud server?',
-      a: 'No. Aegis Vault is 100% local. Your vault is encrypted with AES-256-GCM on your device and never leaves your computer unless you choose to copy or sync the encrypted .aegis file yourself.',
-    },
-    {
-      q: 'What happens if my computer loses power while saving?',
-      a: 'Every save copies the previous working vault to a .bak file, writes the updated file to .tmp, and atomically replaces it. Aegis also saves an encrypted backup every 14 days to Documents/Aegis-Backups.',
-    },
-    {
-      q: 'Can I import passwords from Chrome, Bitwarden, or LastPass?',
-      a: 'Yes. Export a CSV or JSON file from your browser or previous password manager, then open Data Management in Aegis Vault and import it in one click.',
-    },
-    {
-      q: 'Is Aegis Vault free and open source?',
-      a: 'Yes. It is released under the MIT License with no paid tiers, no subscriptions, and full source code available on GitHub.',
-    },
-  ];
+  readonly faqs = computed(() => {
+    const t = this.i18n.t();
+    return [
+      { q: t.faq1_q, a: t.faq1_a },
+      { q: t.faq2_q, a: t.faq2_a },
+      { q: t.faq3_q, a: t.faq3_a },
+      { q: t.faq4_q, a: t.faq4_a },
+    ];
+  });
 
   assetsByOs(os: OsPlatform) {
     return this.release().assets.filter((a) => a.platform === os);
@@ -559,7 +550,7 @@ export class HomeComponent implements OnInit {
           },
           {
             '@type': 'FAQPage',
-            mainEntity: this.faqs.map((f) => ({
+            mainEntity: this.faqs().map((f) => ({
               '@type': 'Question',
               name: f.q,
               acceptedAnswer: {

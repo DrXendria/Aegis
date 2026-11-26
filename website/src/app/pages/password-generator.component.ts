@@ -54,22 +54,18 @@ import { SeoService } from '../services/seo.service';
             </label>
 
             <div class="toggles">
-              <label><input type="checkbox" [ngModel]="useUpper()" (ngModelChange)="toggleOption('upper', $event)" /> Uppercase (A–Z)</label>
-              <label><input type="checkbox" [ngModel]="useLower()" (ngModelChange)="toggleOption('lower', $event)" /> Lowercase (a–z)</label>
-              <label><input type="checkbox" [ngModel]="useNumbers()" (ngModelChange)="toggleOption('numbers', $event)" /> Numbers (0–9)</label>
-              <label><input type="checkbox" [ngModel]="useSymbols()" (ngModelChange)="toggleOption('symbols', $event)" /> Symbols (!&#64;#$%)</label>
+              <label><input type="checkbox" [ngModel]="useUpper()" (ngModelChange)="toggleOption('upper', $event)" /> {{ i18n.t().opt_upper }}</label>
+              <label><input type="checkbox" [ngModel]="useLower()" (ngModelChange)="toggleOption('lower', $event)" /> {{ i18n.t().opt_lower }}</label>
+              <label><input type="checkbox" [ngModel]="useNumbers()" (ngModelChange)="toggleOption('numbers', $event)" /> {{ i18n.t().opt_numbers }}</label>
+              <label><input type="checkbox" [ngModel]="useSymbols()" (ngModelChange)="toggleOption('symbols', $event)" /> {{ i18n.t().opt_symbols }}</label>
             </div>
           </div>
         </div>
 
         <article class="edu-article">
-          <h2>What makes a password strong?</h2>
-          <p>
-            Length matters more than clever substitutions. A 20-character random password drawn from letters, numbers, and symbols carries roughly 131 bits of entropy—well beyond practical brute-force attacks.
-          </p>
-          <p>
-            Avoid reusing passwords across sites. Keep each login unique and stored inside an encrypted offline vault.
-          </p>
+          <h2>{{ i18n.t().gen_edu_title }}</h2>
+          <p>{{ i18n.t().gen_edu_p1 }}</p>
+          <p>{{ i18n.t().gen_edu_p2 }}</p>
         </article>
       </div>
     </section>
@@ -202,10 +198,11 @@ export class PasswordGeneratorComponent implements OnInit {
 
   readonly strengthLabel = computed(() => {
     const bits = this.entropyBits();
-    if (bits >= 100) return 'Very Strong';
-    if (bits >= 70) return 'Strong';
-    if (bits >= 50) return 'Moderate';
-    return 'Weak';
+    const t = this.i18n.t();
+    if (bits >= 100) return t.strength_very_strong;
+    if (bits >= 70) return t.strength_strong;
+    if (bits >= 50) return t.strength_moderate;
+    return t.strength_weak;
   });
 
   readonly strengthColor = computed(() => {
