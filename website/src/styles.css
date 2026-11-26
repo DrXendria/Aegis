@@ -15,6 +15,7 @@
   --btn-primary-text: #0b0d10;
   --code-bg: rgba(255, 255, 255, 0.05);
   --code-text: #d6dce8;
+  --preview-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
   --accent: #34d399;
   --accent-soft: rgba(52, 211, 153, 0.1);
   --accent-border: rgba(52, 211, 153, 0.28);
@@ -43,6 +44,7 @@
   --btn-primary-text: #ffffff;
   --code-bg: rgba(15, 23, 42, 0.05);
   --code-text: #1f2937;
+  --preview-shadow: 0 20px 44px rgba(15, 23, 42, 0.12);
   --accent: #059669;
   --accent-soft: rgba(5, 150, 105, 0.1);
   --accent-border: rgba(5, 150, 105, 0.3);

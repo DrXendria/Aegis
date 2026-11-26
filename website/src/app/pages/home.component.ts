@@ -270,21 +270,21 @@ import { SeoService } from '../services/seo.service';
     /* Desktop window preview */
     .vault-preview {
       overflow: hidden;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+      box-shadow: var(--preview-shadow);
     }
     .window-bar {
       display: flex;
       align-items: center;
       gap: 7px;
       padding: 12px 16px;
-      background: rgba(255, 255, 255, 0.025);
+      background: var(--bg-subtle);
       border-bottom: 1px solid var(--border);
     }
     .window-bar .dot {
       width: 9px;
       height: 9px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.16);
+      background: var(--border-strong);
     }
     .window-title {
       margin-left: 8px;
