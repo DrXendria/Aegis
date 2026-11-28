@@ -5,6 +5,7 @@ import { I18nService } from '../services/i18n.service';
 import { OsPlatform, ReleaseAsset, ReleaseService } from '../services/release.service';
 import { SeoService } from '../services/seo.service';
 import { getExtensionCardCopy } from './extension-card.data';
+import { getExtraFaqs } from './extra-faq.data';
 import { getInstallNotes } from './install-notes.data';
 import { getPkgInstallCopy } from './pkg-install.data';
 
@@ -639,6 +640,7 @@ export class HomeComponent implements OnInit {
       { q: t.faq2_q, a: t.faq2_a },
       { q: t.faq3_q, a: t.faq3_a },
       { q: t.faq4_q, a: t.faq4_a },
+      ...getExtraFaqs(this.i18n.lang()),
     ];
   });
 

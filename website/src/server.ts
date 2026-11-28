@@ -365,6 +365,7 @@ app.get('/sitemap.xml', (req, res) => {
     { loc: '/guides/zero-knowledge-encryption', priority: '0.8', changefreq: 'monthly' },
     { loc: '/guides/migrate-from-chrome', priority: '0.8', changefreq: 'monthly' },
     { loc: '/guides/local-first-vs-cloud', priority: '0.8', changefreq: 'monthly' },
+    { loc: '/guides/browser-extension-autofill', priority: '0.8', changefreq: 'monthly' },
     { loc: '/privacy', priority: '0.4', changefreq: 'yearly' },
   ];
 

@@ -4,6 +4,7 @@ import { I18nService } from '../services/i18n.service';
 import { SeoService } from '../services/seo.service';
 import { GUIDES_A, type SecurityGuide } from './guides.data-a';
 import { GUIDES_B } from './guides.data-b';
+import { getExtensionGuide } from './guides.ext-data';
 
 const ALL_GUIDES: Record<string, SecurityGuide[]> = {
   ...GUIDES_A,
@@ -129,9 +130,11 @@ export class GuidesComponent implements OnInit {
 
   private readonly currentSlug = signal<string | null>(null);
 
-  readonly guides = computed<SecurityGuide[]>(
-    () => ALL_GUIDES[this.i18n.lang()] ?? ALL_GUIDES['en'],
-  );
+  readonly guides = computed<SecurityGuide[]>(() => {
+    const lang = this.i18n.lang();
+    const base = ALL_GUIDES[lang] ?? ALL_GUIDES['en'];
+    return [...base, getExtensionGuide(lang)];
+  });
 
   readonly activeGuide = computed(() => {
     const slug = this.currentSlug();
