@@ -5,6 +5,7 @@ import {
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
 import express from 'express';
+import { timingSafeEqual } from 'node:crypto';
 import { join } from 'node:path';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
@@ -139,15 +140,54 @@ interface StatsPayload {
   byPlatform: { windows: number; macos: number; linux: number; other: number };
   latestVersion: string;
   releasesCount: number;
+  releases: Array<{ tag: string; publishedAt: string; downloads: number }>;
   updatedAt: string;
 }
 
 let cachedStats: { data: StatsPayload; expiresAt: number } | null = null;
+const adminFailTracker = new Map<string, { count: number; resetAt: number }>();
 
-// Node.js API: Cached GitHub Releases download statistics
-app.get('/api/stats', async (_req, res) => {
-  if (cachedStats && cachedStats.expiresAt > Date.now()) {
-    res.setHeader('Cache-Control', 'public, max-age=300');
+function safeSecretEqual(provided: string, expected: string): boolean {
+  const a = Buffer.from(provided, 'utf8');
+  const b = Buffer.from(expected, 'utf8');
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
+
+// Node.js API: Private ADMIN_SECRET-protected GitHub Releases statistics
+app.get('/api/stats', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+
+  const expectedSecret = (process.env['ADMIN_SECRET'] || '').trim();
+  if (!expectedSecret) {
+    res.status(503).json({ error: 'Admin stats endpoint is disabled (ADMIN_SECRET not set).' });
+    return;
+  }
+
+  const clientIp =
+    (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+    req.socket.remoteAddress ||
+    'unknown';
+  const now = Date.now();
+  const failRecord = adminFailTracker.get(clientIp);
+  if (failRecord && failRecord.resetAt > now && failRecord.count >= 10) {
+    res.status(429).json({ error: 'Too many failed attempts. Try again later.' });
+    return;
+  }
+
+  const providedSecret = String(req.headers['x-admin-secret'] || '').trim();
+  if (!providedSecret || !safeSecretEqual(providedSecret, expectedSecret)) {
+    const nextCount = failRecord && failRecord.resetAt > now ? failRecord.count + 1 : 1;
+    adminFailTracker.set(clientIp, { count: nextCount, resetAt: now + 15 * 60 * 1000 });
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  adminFailTracker.delete(clientIp);
+
+  const forceRefresh = req.query['refresh'] === '1';
+  if (!forceRefresh && cachedStats && cachedStats.expiresAt > now) {
     res.json(cachedStats.data);
     return;
   }
@@ -168,18 +208,22 @@ app.get('/api/stats', async (_req, res) => {
       throw new Error(`GitHub API HTTP ${response.status}`);
     }
 
-    const releases = (await response.json()) as Array<{
+    const releasesRaw = (await response.json()) as Array<{
       tag_name?: string;
+      published_at?: string;
       assets?: Array<{ name: string; download_count?: number }>;
     }>;
 
     const byPlatform = { windows: 0, macos: 0, linux: 0, other: 0 };
     let totalDownloads = 0;
+    const releases: Array<{ tag: string; publishedAt: string; downloads: number }> = [];
 
-    for (const rel of releases) {
+    for (const rel of releasesRaw) {
+      let relDownloads = 0;
       for (const asset of rel.assets || []) {
         const count = asset.download_count || 0;
         totalDownloads += count;
+        relDownloads += count;
         const meta = classifyAsset(asset.name);
         if (meta) {
           byPlatform[meta.platform] += count;
@@ -187,28 +231,26 @@ app.get('/api/stats', async (_req, res) => {
           byPlatform.other += count;
         }
       }
+      releases.push({
+        tag: rel.tag_name || 'unknown',
+        publishedAt: rel.published_at || '',
+        downloads: relDownloads,
+      });
     }
 
     const payload: StatsPayload = {
       totalDownloads,
       byPlatform,
-      latestVersion: (releases[0]?.tag_name || `v${FALLBACK_VERSION}`).replace(/^v/i, ''),
-      releasesCount: releases.length,
+      latestVersion: (releasesRaw[0]?.tag_name || `v${FALLBACK_VERSION}`).replace(/^v/i, ''),
+      releasesCount: releasesRaw.length,
+      releases,
       updatedAt: new Date().toISOString(),
     };
 
     cachedStats = { data: payload, expiresAt: Date.now() + CACHE_TTL_MS };
-    res.setHeader('Cache-Control', 'public, max-age=300');
     res.json(payload);
   } catch {
-    res.setHeader('Cache-Control', 'public, max-age=60');
-    res.json({
-      totalDownloads: 0,
-      byPlatform: { windows: 0, macos: 0, linux: 0, other: 0 },
-      latestVersion: FALLBACK_VERSION,
-      releasesCount: 0,
-      updatedAt: new Date().toISOString(),
-    });
+    res.status(502).json({ error: 'Failed to fetch GitHub release stats.' });
   }
 });
 
@@ -286,7 +328,7 @@ app.get('/robots.txt', (req, res) => {
     process.env['RENDER_EXTERNAL_URL'] ||
     `${req.protocol}://${req.get('host')}`;
   res.type('text/plain').send(
-    `User-agent: *\nAllow: /\nDisallow: /api/\n\nSitemap: ${origin}/sitemap.xml\n`,
+    `User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /admin\n\nSitemap: ${origin}/sitemap.xml\n`,
   );
 });
 

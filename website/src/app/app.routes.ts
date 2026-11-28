@@ -3,6 +3,7 @@ import { HomeComponent } from './pages/home.component';
 import { PasswordGeneratorComponent } from './pages/password-generator.component';
 import { GuidesComponent } from './pages/guides.component';
 import { PrivacyComponent } from './pages/privacy.component';
+import { AdminComponent } from './pages/admin.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -10,5 +11,6 @@ export const routes: Routes = [
   { path: 'guides', component: GuidesComponent },
   { path: 'guides/:slug', component: GuidesComponent },
   { path: 'privacy', component: PrivacyComponent },
+  { path: 'admin', component: AdminComponent },
   { path: '**', redirectTo: '' },
 ];
