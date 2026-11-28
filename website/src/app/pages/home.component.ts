@@ -195,13 +195,9 @@ import { getPkgInstallCopy } from './pkg-install.data';
             <p>{{ extCopy().desc }}</p>
             <span class="ext-browsers">{{ extCopy().browsers }}</span>
           </div>
-          <a
-            [href]="extensionZipUrl()"
-            (click)="onExtensionDownload()"
-            class="btn btn-primary ext-btn"
-          >
-            {{ extCopy().downloadBtn }}
-          </a>
+          <span class="btn ext-btn" style="cursor: default; opacity: 0.85;">
+            {{ extCopy().storeNote }}
+          </span>
         </div>
 
         <details class="install-notes card">
@@ -571,18 +567,6 @@ export class HomeComponent implements OnInit {
   readonly installNotes = computed(() => getInstallNotes(this.i18n.lang()));
   readonly pkgCopy = computed(() => getPkgInstallCopy(this.i18n.lang()));
   readonly extCopy = computed(() => getExtensionCardCopy(this.i18n.lang()));
-  readonly extensionZipUrl = computed(
-    () =>
-      `https://github.com/DrXendria/Aegis/releases/download/${this.release().tag}/Aegis_${this.release().tag}_browser-extension.zip`,
-  );
-
-  onExtensionDownload(): void {
-    this.analytics.trackDownload(
-      'browser-extension',
-      '.zip',
-      `Aegis_${this.release().tag}_browser-extension.zip`,
-    );
-  }
 
   readonly pkgTabs = [
     {
