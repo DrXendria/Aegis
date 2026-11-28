@@ -36,18 +36,16 @@ async function deriveCacheKey(token) {
   );
 }
 
-async function encryptLocalJson(obj, token) {
-  const key = await deriveCacheKey(token);
+async function encryptLocalJsonWithKey(obj, key) {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const encoded = new TextEncoder().encode(JSON.stringify(obj));
   const buf = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
   return { ciphertext: bytesToBase64(new Uint8Array(buf)), iv: bytesToBase64(iv) };
 }
 
-async function decryptLocalJson(blob, token) {
-  if (!blob?.ciphertext || !blob?.iv || !token) return null;
+async function decryptLocalJsonWithKey(blob, key) {
+  if (!blob?.ciphertext || !blob?.iv) return null;
   try {
-    const key = await deriveCacheKey(token);
     const buf = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv: base64ToBytes(blob.iv) },
       key,
@@ -63,15 +61,18 @@ async function loadOfflineCache() {
   const token = await getToken();
   if (!token) return null;
   const { encryptedOfflineCache } = await chrome.storage.local.get('encryptedOfflineCache');
-  return decryptLocalJson(encryptedOfflineCache, token);
+  if (!encryptedOfflineCache) return null;
+  const key = await deriveCacheKey(token);
+  return decryptLocalJsonWithKey(encryptedOfflineCache, key);
 }
 
 async function saveOfflineCache(entries, cards) {
   const token = await getToken();
   if (!token) return;
-  const blob = await encryptLocalJson(
+  const key = await deriveCacheKey(token);
+  const blob = await encryptLocalJsonWithKey(
     { entries: entries || [], cards: cards || [], syncedAt: Date.now() },
-    token
+    key
   );
   await chrome.storage.local.set({ encryptedOfflineCache: blob });
 }
@@ -80,7 +81,9 @@ async function loadOfflineQueue() {
   const token = await getToken();
   if (!token) return [];
   const { encryptedOfflineQueue } = await chrome.storage.local.get('encryptedOfflineQueue');
-  const parsed = await decryptLocalJson(encryptedOfflineQueue, token);
+  if (!encryptedOfflineQueue) return [];
+  const key = await deriveCacheKey(token);
+  const parsed = await decryptLocalJsonWithKey(encryptedOfflineQueue, key);
   return Array.isArray(parsed) ? parsed : [];
 }
 
@@ -89,12 +92,21 @@ async function saveOfflineQueue(queue) {
   if (!token) return;
   if (!queue || queue.length === 0) {
     await chrome.storage.local.remove('encryptedOfflineQueue');
-    await chrome.alarms.clear(SYNC_ALARM_NAME);
+    try {
+      await chrome.alarms?.clear(SYNC_ALARM_NAME);
+    } catch {
+      // Ignore if alarms unavailable
+    }
     return;
   }
-  const blob = await encryptLocalJson(queue, token);
+  const key = await deriveCacheKey(token);
+  const blob = await encryptLocalJsonWithKey(queue, key);
   await chrome.storage.local.set({ encryptedOfflineQueue: blob });
-  chrome.alarms.create(SYNC_ALARM_NAME, { periodInMinutes: 1 });
+  try {
+    chrome.alarms?.create(SYNC_ALARM_NAME, { periodInMinutes: 1 });
+  } catch {
+    // Ignore if alarms unavailable
+  }
 }
 
 function domainMatches(entryTitle, host) {
@@ -174,12 +186,25 @@ async function flushOfflineQueueIfOnline() {
 }
 
 async function enqueueOfflineSave(kind, body) {
-  const queue = await loadOfflineQueue();
-  queue.push({ kind, body, createdAt: Date.now() });
-  await saveOfflineQueue(queue);
+  const token = await getToken();
+  if (!token) {
+    throw new Error('NOT_PAIRED');
+  }
+  const key = await deriveCacheKey(token);
+  const { encryptedOfflineQueue, encryptedOfflineCache } = await chrome.storage.local.get([
+    'encryptedOfflineQueue',
+    'encryptedOfflineCache',
+  ]);
 
-  // Immediately reflect in local encrypted cache so autofill works even before Desktop opens
-  const cache = (await loadOfflineCache()) || { entries: [], cards: [] };
+  const queueRaw = await decryptLocalJsonWithKey(encryptedOfflineQueue, key);
+  const queue = Array.isArray(queueRaw) ? queueRaw : [];
+  queue.push({ kind, body, createdAt: Date.now() });
+
+  const cacheRaw = await decryptLocalJsonWithKey(encryptedOfflineCache, key);
+  const cache = cacheRaw && typeof cacheRaw === 'object'
+    ? { entries: cacheRaw.entries || [], cards: cacheRaw.cards || [] }
+    : { entries: [], cards: [] };
+
   if (kind === 'password') {
     cache.entries.unshift({
       id: `offline_${Date.now()}`,
@@ -197,7 +222,22 @@ async function enqueueOfflineSave(kind, body) {
       cvv: body.cvv || '',
     });
   }
-  await saveOfflineCache(cache.entries, cache.cards);
+
+  const [queueBlob, cacheBlob] = await Promise.all([
+    encryptLocalJsonWithKey(queue, key),
+    encryptLocalJsonWithKey({ ...cache, syncedAt: Date.now() }, key),
+  ]);
+
+  await chrome.storage.local.set({
+    encryptedOfflineQueue: queueBlob,
+    encryptedOfflineCache: cacheBlob,
+  });
+
+  try {
+    chrome.alarms?.create(SYNC_ALARM_NAME, { periodInMinutes: 1 });
+  } catch {
+    // Ignore if alarms unavailable
+  }
 }
 
 async function updateBadgeForTab(tabId, url) {
@@ -228,11 +268,13 @@ async function updateBadgeForTab(tabId, url) {
   }
 }
 
-chrome.alarms.onAlarm.addListener(async (alarm) => {
-  if (alarm.name === SYNC_ALARM_NAME) {
-    await flushOfflineQueueIfOnline();
-  }
-});
+if (chrome.alarms?.onAlarm) {
+  chrome.alarms.onAlarm.addListener(async (alarm) => {
+    if (alarm.name === SYNC_ALARM_NAME) {
+      await flushOfflineQueueIfOnline();
+    }
+  });
+}
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && tab?.url) {

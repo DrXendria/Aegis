@@ -394,9 +394,10 @@
           password: payload.password,
         });
         if (res?.ok) {
-          saveBtn.textContent = 'Saved';
+          saveBtn.textContent = res.queued ? 'Saved (Offline)' : 'Saved';
           setTimeout(remove, 900);
         } else {
+          console.warn('[Aegis Vault] Save failed:', res);
           saveBtn.textContent = res?.status === 423 ? 'Unlock Aegis first' : 'Failed';
           saveBtn.disabled = false;
         }

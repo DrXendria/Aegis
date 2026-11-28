@@ -209,15 +209,55 @@ fn write_json(stream: &mut TcpStream, status: &str, origin: Option<&str>, body: 
     let _ = stream.flush();
 }
 
-fn handle_client(mut stream: TcpStream, state: SharedBridgeState, app: AppHandle) {
+fn read_http_request(stream: &mut TcpStream) -> Option<String> {
     let _ = stream.set_read_timeout(Some(std::time::Duration::from_secs(2)));
-    let mut buf = [0u8; 32768];
-    let n = match stream.read(&mut buf) {
-        Ok(0) | Err(_) => return,
-        Ok(n) => n,
-    };
+    let mut raw = Vec::with_capacity(4096);
+    let mut chunk = [0u8; 4096];
+    let mut header_end: Option<usize> = None;
+    let mut content_length: usize = 0;
 
-    let req_str = String::from_utf8_lossy(&buf[..n]);
+    loop {
+        match stream.read(&mut chunk) {
+            Ok(0) => break,
+            Ok(n) => {
+                raw.extend_from_slice(&chunk[..n]);
+                if raw.len() > 65536 {
+                    break;
+                }
+                if header_end.is_none() {
+                    if let Some(pos) = raw.windows(4).position(|w| w == b"\r\n\r\n") {
+                        let end = pos + 4;
+                        header_end = Some(end);
+                        let header_str = String::from_utf8_lossy(&raw[..pos]);
+                        for line in header_str.lines().skip(1) {
+                            if let Some((k, v)) = line.split_once(':') {
+                                if k.trim().eq_ignore_ascii_case("content-length") {
+                                    content_length = v.trim().parse::<usize>().unwrap_or(0);
+                                }
+                            }
+                        }
+                    }
+                }
+                if let Some(end) = header_end {
+                    if raw.len() >= end + content_length {
+                        break;
+                    }
+                }
+            }
+            Err(_) => break,
+        }
+    }
+
+    if raw.is_empty() {
+        return None;
+    }
+    Some(String::from_utf8_lossy(&raw).to_string())
+}
+
+fn handle_client(mut stream: TcpStream, state: SharedBridgeState, app: AppHandle) {
+    let Some(req_str) = read_http_request(&mut stream) else {
+        return;
+    };
     let (header_part, body_part) = match req_str.split_once("\r\n\r\n") {
         Some((h, b)) => (h, b),
         None => (req_str.as_ref(), ""),
