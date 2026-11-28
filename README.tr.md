@@ -76,17 +76,17 @@ scoop install aegis-vault
 winget install DrXendria.Aegis
 ```
 
-### Doğrudan İndirme (`v0.3.0`)
+### Doğrudan İndirme (`v0.3.2`)
 
 | Platform | Paket | İndirme |
 | :--- | :--- | :--- |
-| Windows (x64) | NSIS Kurulum (`.exe`) | [Aegis_0.3.0_x64-setup.exe](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_0.3.0_x64-setup.exe) |
-| Windows (x64) | MSI Paketi (`.msi`) | [Aegis_0.3.0_x64_en-US.msi](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_0.3.0_x64_en-US.msi) |
-| macOS (Apple Silicon) | Disk Kalıbı (`.dmg`) | [Aegis_0.3.0_aarch64.dmg](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_0.3.0_aarch64.dmg) |
-| Linux (Evrensel) | Taşınabilir (`.AppImage`) | [Aegis_0.3.0_amd64.AppImage](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_0.3.0_amd64.AppImage) |
-| Linux (Debian / Ubuntu / Mint) | Debian Paketi (`.deb`) | [Aegis_0.3.0_amd64.deb](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_0.3.0_amd64.deb) |
-| Linux (Fedora / RHEL / openSUSE) | RPM Paketi (`.rpm`) | [Aegis-0.3.0-1.x86_64.rpm](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis-0.3.0-1.x86_64.rpm) |
-| Tarayıcı Eklentisi (Opera GX / Chrome / Brave / Edge / Firefox) | Manifest V3 (`.zip`) | [Aegis_v0.3.0_browser-extension.zip](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_v0.3.0_browser-extension.zip) |
+| Windows (x64) | NSIS Kurulum (`.exe`) | [Aegis_0.3.2_x64-setup.exe](https://github.com/DrXendria/Aegis/releases/download/v0.3.2/Aegis_0.3.2_x64-setup.exe) |
+| Windows (x64) | MSI Paketi (`.msi`) | [Aegis_0.3.2_x64_en-US.msi](https://github.com/DrXendria/Aegis/releases/download/v0.3.2/Aegis_0.3.2_x64_en-US.msi) |
+| macOS (Apple Silicon) | Disk Kalıbı (`.dmg`) | [Aegis_0.3.2_aarch64.dmg](https://github.com/DrXendria/Aegis/releases/download/v0.3.2/Aegis_0.3.2_aarch64.dmg) |
+| Linux (Evrensel) | Taşınabilir (`.AppImage`) | [Aegis_0.3.2_amd64.AppImage](https://github.com/DrXendria/Aegis/releases/download/v0.3.2/Aegis_0.3.2_amd64.AppImage) |
+| Linux (Debian / Ubuntu / Mint) | Debian Paketi (`.deb`) | [Aegis_0.3.2_amd64.deb](https://github.com/DrXendria/Aegis/releases/download/v0.3.2/Aegis_0.3.2_amd64.deb) |
+| Linux (Fedora / RHEL / openSUSE) | RPM Paketi (`.rpm`) | [Aegis-0.3.2-1.x86_64.rpm](https://github.com/DrXendria/Aegis/releases/download/v0.3.2/Aegis-0.3.2-1.x86_64.rpm) |
+| Tarayıcı Eklentisi (Opera GX / Chrome / Brave / Edge / Firefox) | Manifest V3 (`.zip`) | [Aegis_v0.3.2_browser-extension.zip](https://github.com/DrXendria/Aegis/releases/download/v0.3.2/Aegis_v0.3.2_browser-extension.zip) |
 
 > [!NOTE]
 > **İlk kurulum notu:** macOS'te `Aegis.app` üzerine sağ tıklayıp **Aç** deyin (veya `xattr -cr /Applications/Aegis.app` çalıştırın). Windows'ta SmartScreen uyarısı çıkarsa **Ek bilgi → Yine de çalıştır** seçeneğine tıklayın.
