@@ -102,3 +102,52 @@ export const getAllCategories = (
 
   return [...presets, ...customs];
 };
+
+export function inferCategoryFromSite(siteOrTitle: string, fallback: string = 'other'): string {
+  const s = (siteOrTitle || '').toLowerCase().trim();
+  if (!s) return fallback;
+
+  // Education (.edu, .ac.*, universities, LMS, learning platforms)
+  if (
+    /(^|\.)edu(\.|$)|\.ac\.|universit|okul|school|academy|campus|moodle|blackboard|canvas|coursera|udemy|edx|khanacademy|duolingo|quizlet|eba\.gov|osym|yok\.gov|obs\./.test(s)
+  ) {
+    return 'education';
+  }
+
+  // Gaming
+  if (
+    /steam|epicgames|riotgames|valorant|leagueoflegends|playstation|xbox|nintendo|ubisoft|blizzard|battlenet|roblox|minecraft|gog\.com|itch\.io|rockstargames|faceit|ea\.com|origin|nexusmods/.test(s)
+  ) {
+    return 'gaming';
+  }
+
+  // Entertainment & Streaming
+  if (
+    /netflix|spotify|youtube|twitch|disney|hbo|max\.com|primevideo|blutv|exxen|gain|mubi|soundcloud|deezer|crunchyroll|kick\.com|imdb|letterboxd|vimeo|tidal|audible/.test(s)
+  ) {
+    return 'entertainment';
+  }
+
+  // Work & Finance (banks, fintech, crypto, dev tools, cloud, email, government)
+  if (
+    /bank|garanti|isbank|akbank|yapikredi|ziraat|halkbank|vakifbank|qnb|finans|enpara|papara|paycell|iyzico|paypal|stripe|wise|revolut|binance|coinbase|kraken|btcturk|paribu|github|gitlab|bitbucket|figma|slack|jira|atlassian|notion|linear|aws|azure|cloudflare|render|vercel|netlify|digitalocean|heroku|openai|chatgpt|claude|anthropic|microsoft|office|live\.com|outlook|hotmail|proton|turkiye\.gov|edevlet|adobe|canva|dropbox/.test(s)
+  ) {
+    return 'work';
+  }
+
+  // Shopping & E-commerce
+  if (
+    /amazon|trendyol|hepsiburada|n11|getir|yemeksepeti|sahibinden|dolap|letgo|ebay|aliexpress|temu|shein|ikea|zara|nike|adidas|etsy|walmart|bestbuy|migros|a101|bim|ciceksepeti|decathlon|mediamarkt|vatanbilgisayar/.test(s)
+  ) {
+    return 'shopping';
+  }
+
+  // Social Media
+  if (
+    /instagram|facebook|twitter|(^|\.)x\.com|tiktok|reddit|linkedin|discord|snapchat|pinterest|whatsapp|telegram|threads|bsky|bluesky|mastodon|tumblr|quora|medium|eksisozluk/.test(s)
+  ) {
+    return 'social';
+  }
+
+  return fallback;
+}

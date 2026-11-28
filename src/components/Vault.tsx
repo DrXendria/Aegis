@@ -9,7 +9,8 @@ import {
 import { decryptData, encryptData } from '../crypto';
 import {
   getCategoryDetails,
-  getAllCategories
+  getAllCategories,
+  inferCategoryFromSite
 } from '../categories';
 import type { CustomCategory } from '../categories';
 
@@ -448,7 +449,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock, onA
                   username: (payload.username || '').trim(),
                   encryptedPassword,
                   isFavorite: false,
-                  category: 'social',
+                  category: inferCategoryFromSite(payload.title, 'other'),
                   lastModified: Date.now(),
                 };
                 await saveSingleEntry(newEntry);
@@ -480,7 +481,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock, onA
                   username: last4 ? `•••• ${last4}` : '',
                   encryptedPassword,
                   isFavorite: false,
-                  category: 'finance',
+                  category: 'work',
                   lastModified: Date.now(),
                 };
                 await saveSingleEntry(newEntry);
@@ -514,7 +515,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock, onA
                 renewalDate: payload.renewal_date || '',
                 paymentMethod: payload.payment_method || '',
                 isFavorite: false,
-                category: 'entertainment',
+                category: inferCategoryFromSite(payload.title, 'entertainment'),
                 lastModified: Date.now(),
               };
               await saveSingleEntry(newEntry);
