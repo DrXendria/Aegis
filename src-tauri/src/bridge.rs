@@ -19,10 +19,36 @@ pub struct BridgeEntry {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct BridgeCard {
+    pub id: String,
+    pub title: String,
+    pub number: String,
+    pub expiry: String,
+    pub cvv: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SaveCredentialPayload {
     pub title: String,
     pub username: String,
     pub password: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SaveCardPayload {
+    pub title: String,
+    pub number: String,
+    pub expiry: String,
+    pub cvv: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SaveSubscriptionPayload {
+    pub title: String,
+    pub cost: String,
+    pub currency: String,
+    pub renewal_date: Option<String>,
+    pub payment_method: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -35,6 +61,7 @@ pub struct BridgeState {
     pub token: String,
     pub unlocked: bool,
     pub entries: Vec<BridgeEntry>,
+    pub cards: Vec<BridgeCard>,
 }
 
 pub type SharedBridgeState = Arc<Mutex<BridgeState>>;
@@ -148,12 +175,11 @@ fn domain_matches(entry_title: &str, host: &str) -> bool {
     }
 
     let title_lower = entry_title.to_lowercase();
-    if title_lower.contains(host_clean) || host_clean.contains(&title_lower) && title_lower.len() >= 3
+    if title_lower.contains(host_clean) || (host_clean.contains(&title_lower) && title_lower.len() >= 3)
     {
         return true;
     }
 
-    // Match main domain stem (e.g. "github" from "github.com" or "mail.proton.me" -> "proton")
     let parts: Vec<&str> = host_clean.split('.').collect();
     if parts.len() >= 2 {
         let stem = parts[parts.len() - 2];
@@ -220,7 +246,6 @@ fn handle_client(mut stream: TcpStream, state: SharedBridgeState, app: AppHandle
         }
     }
 
-    // Reject browser requests from regular websites
     if let Some(ref o) = origin {
         if !is_allowed_origin(o) {
             write_json(&mut stream, "403 Forbidden", None, r#"{"error":"Origin not allowed"}"#);
@@ -245,7 +270,6 @@ fn handle_client(mut stream: TcpStream, state: SharedBridgeState, app: AppHandle
         return;
     }
 
-    // All other endpoints require a valid pairing token
     let Ok(guard) = state.lock() else {
         write_json(&mut stream, "500 Internal Server Error", origin.as_deref(), r#"{"error":"Lock error"}"#);
         return;
@@ -297,6 +321,14 @@ fn handle_client(mut stream: TcpStream, state: SharedBridgeState, app: AppHandle
             .to_string();
             write_json(&mut stream, "200 OK", origin.as_deref(), &body);
         }
+        ("GET", "/cards") => {
+            let body = serde_json::json!({
+                "ok": true,
+                "cards": guard.cards
+            })
+            .to_string();
+            write_json(&mut stream, "200 OK", origin.as_deref(), &body);
+        }
         ("POST", "/save") => {
             drop(guard);
             match serde_json::from_str::<SaveCredentialPayload>(body_part.trim()) {
@@ -306,6 +338,30 @@ fn handle_client(mut stream: TcpStream, state: SharedBridgeState, app: AppHandle
                 }
                 _ => {
                     write_json(&mut stream, "400 Bad Request", origin.as_deref(), r#"{"error":"Invalid credential payload"}"#);
+                }
+            }
+        }
+        ("POST", "/save-card") => {
+            drop(guard);
+            match serde_json::from_str::<SaveCardPayload>(body_part.trim()) {
+                Ok(payload) if !payload.number.trim().is_empty() => {
+                    let _ = app.emit("bridge-save-card", payload);
+                    write_json(&mut stream, "200 OK", origin.as_deref(), r#"{"ok":true}"#);
+                }
+                _ => {
+                    write_json(&mut stream, "400 Bad Request", origin.as_deref(), r#"{"error":"Invalid card payload"}"#);
+                }
+            }
+        }
+        ("POST", "/save-subscription") => {
+            drop(guard);
+            match serde_json::from_str::<SaveSubscriptionPayload>(body_part.trim()) {
+                Ok(payload) if !payload.title.trim().is_empty() && !payload.cost.trim().is_empty() => {
+                    let _ = app.emit("bridge-save-subscription", payload);
+                    write_json(&mut stream, "200 OK", origin.as_deref(), r#"{"ok":true}"#);
+                }
+                _ => {
+                    write_json(&mut stream, "400 Bad Request", origin.as_deref(), r#"{"error":"Invalid subscription payload"}"#);
                 }
             }
         }

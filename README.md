@@ -21,7 +21,7 @@
   <p>
     <a href="https://github.com/DrXendria/Aegis/releases/latest"><img src="https://img.shields.io/github/v/release/DrXendria/Aegis?style=flat-square&color=10b981&label=release" alt="Latest Release" /></a>
     <a href="https://github.com/DrXendria/Aegis/releases"><img src="https://img.shields.io/github/downloads/DrXendria/Aegis/total?style=flat-square&color=3b82f6&label=downloads" alt="Total Downloads" /></a>
-    <a href="LICENSE"><img src="https://img.shields.io/github/license/DrXendria/Aegis?style=flat-square&color=475569&label=license" alt="MIT License" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/github/license/DrXendria/Aegis?style=flat-square&color=475569&label=license" alt="GPL-3.0 License" /></a>
     <img src="https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-1e293b?style=flat-square" alt="Platforms" />
   </p>
 
@@ -189,7 +189,7 @@ npm run tauri build
 | PBKDF2 Iterations | `600,000` | `650,000` | `600,000` | `100,100` |
 | Automatic Local Backups | Built-in (14d) | No | No | No |
 | Subscription Tracker | Built-in (22 FX) | No | No | No |
-| Open Source | MIT | No | GPL-3.0 | No |
+| Open Source | GPL-3.0 | No | GPL-3.0 | No |
 | Languages | 25 | 12 | 16 | 8 |
 | Price | Free | \$35.88 / yr | \$10.00 / yr | \$36.00 / yr |
 
@@ -197,5 +197,5 @@ npm run tauri build
 
 ## License
 
-Released under the [MIT License](LICENSE) by [DrXendria](https://github.com/DrXendria).
+Released under the [GNU General Public License v3.0](LICENSE) by [DrXendria](https://github.com/DrXendria).
 Issues and pull requests are welcome.

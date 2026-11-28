@@ -1,6 +1,6 @@
 mod bridge;
 
-use bridge::{BridgeEntry, BridgeInfo, BridgeState, SharedBridgeState, BRIDGE_PORT};
+use bridge::{BridgeCard, BridgeEntry, BridgeInfo, BridgeState, SharedBridgeState, BRIDGE_PORT};
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, State};
 
@@ -109,9 +109,13 @@ fn get_bridge_info(state: State<SharedBridgeState>) -> Result<BridgeInfo, String
 fn sync_bridge_vault(
     state: State<SharedBridgeState>,
     entries: Vec<BridgeEntry>,
+    cards: Option<Vec<BridgeCard>>,
 ) -> Result<(), String> {
     let mut guard = state.lock().map_err(|_| "Bridge lock failed".to_string())?;
     guard.entries = entries;
+    if let Some(card_list) = cards {
+        guard.cards = card_list;
+    }
     guard.unlocked = true;
     Ok(())
 }
@@ -120,6 +124,7 @@ fn sync_bridge_vault(
 fn clear_bridge_vault(state: State<SharedBridgeState>) -> Result<(), String> {
     let mut guard = state.lock().map_err(|_| "Bridge lock failed".to_string())?;
     guard.entries.clear();
+    guard.cards.clear();
     guard.unlocked = false;
     Ok(())
 }
@@ -144,6 +149,7 @@ pub fn run() {
                 token,
                 unlocked: false,
                 entries: Vec::new(),
+                cards: Vec::new(),
             }));
             app.manage(Arc::clone(&shared));
             bridge::start_bridge_server(handle, shared);

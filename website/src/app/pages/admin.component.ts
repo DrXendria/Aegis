@@ -9,6 +9,7 @@ interface AdminStats {
   releasesCount: number;
   releases: Array<{ tag: string; publishedAt: string; downloads: number }>;
   updatedAt: string;
+  warning?: string;
 }
 
 const SESSION_SECRET_KEY = 'aegis_admin_secret';
@@ -58,6 +59,10 @@ const SESSION_SECRET_KEY = 'aegis_admin_secret';
               <button type="button" class="btn" (click)="logout()">Lock</button>
             </div>
           </div>
+
+          @if (stats()!.warning) {
+            <p class="admin-error" style="margin: 0 0 16px 0;">{{ stats()!.warning }}</p>
+          }
 
           <div class="stat-grid">
             <div class="card stat-card">

@@ -216,7 +216,7 @@ jobs:
               "version": "${VER}",
               "description": "100% local, two-layer zero-knowledge offline password manager",
               "homepage": "https://aegis-vault-web.onrender.com",
-              "license": "MIT",
+              "license": "GPL-3.0-only",
               "architecture": {
                   "64bit": {
                       "url": "https://github.com/DrXendria/Aegis/releases/download/v${VER}/Aegis_${VER}_x64-setup.exe#/dl.7z",

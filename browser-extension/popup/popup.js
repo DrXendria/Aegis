@@ -12,10 +12,25 @@ const saveTokenBtn = document.getElementById('save-token-btn');
 const cancelTokenBtn = document.getElementById('cancel-token-btn');
 const pairingError = document.getElementById('pairing-error');
 
+const tabLogins = document.getElementById('tab-logins');
+const tabCards = document.getElementById('tab-cards');
+const tabSub = document.getElementById('tab-sub');
+const viewLogins = document.getElementById('view-logins');
+const viewCards = document.getElementById('view-cards');
+const viewSub = document.getElementById('view-sub');
+
 const searchInput = document.getElementById('search-input');
 const siteLabel = document.getElementById('site-label');
 const entriesList = document.getElementById('entries-list');
+const cardsList = document.getElementById('cards-list');
 const genBtn = document.getElementById('gen-btn');
+
+const subTitle = document.getElementById('sub-title');
+const subCost = document.getElementById('sub-cost');
+const subCurrency = document.getElementById('sub-currency');
+const subDate = document.getElementById('sub-date');
+const subSaveBtn = document.getElementById('sub-save-btn');
+const subMsg = document.getElementById('sub-msg');
 
 let currentTab = null;
 let currentHost = '';
@@ -30,6 +45,17 @@ function showOnly(panel) {
   mainPanel.classList.add('hidden');
   emptyState.classList.add('hidden');
   panel.classList.remove('hidden');
+}
+
+function switchTab(which) {
+  for (const [btn, view, name] of [
+    [tabLogins, viewLogins, 'logins'],
+    [tabCards, viewCards, 'cards'],
+    [tabSub, viewSub, 'sub'],
+  ]) {
+    btn.classList.toggle('active', name === which);
+    view.classList.toggle('hidden', name !== which);
+  }
 }
 
 function generateStrongPassword(length = 20) {
@@ -114,6 +140,73 @@ function renderEntries(entries, emptyMessage) {
   }
 }
 
+function renderCards(cards) {
+  cardsList.textContent = '';
+  if (!cards || cards.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-list';
+    empty.textContent = 'No credit cards saved in Aegis Vault yet.';
+    cardsList.appendChild(empty);
+    return;
+  }
+
+  for (const c of cards) {
+    const row = document.createElement('div');
+    row.className = 'entry-card';
+
+    const meta = document.createElement('div');
+    meta.className = 'entry-meta';
+
+    const title = document.createElement('div');
+    title.className = 'entry-title';
+    title.textContent = c.title;
+
+    const last4 = (c.number || '').replace(/\D/g, '').slice(-4);
+    const sub = document.createElement('div');
+    sub.className = 'entry-user';
+    sub.textContent = `•••• ${last4}${c.expiry ? ` • ${c.expiry}` : ''}`;
+
+    meta.appendChild(title);
+    meta.appendChild(sub);
+
+    const actions = document.createElement('div');
+    actions.className = 'entry-actions';
+
+    const fillBtn = document.createElement('button');
+    fillBtn.type = 'button';
+    fillBtn.className = 'mini-btn fill';
+    fillBtn.textContent = 'Fill';
+    fillBtn.addEventListener('click', async () => {
+      if (!currentTab?.id) return;
+      try {
+        await chrome.tabs.sendMessage(currentTab.id, { type: 'AEGIS_FILL_CARD', card: c });
+        fillBtn.textContent = 'Filled';
+        setTimeout(() => window.close(), 350);
+      } catch {
+        fillBtn.textContent = 'Reload tab';
+      }
+    });
+
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'mini-btn';
+    copyBtn.textContent = 'Copy';
+    copyBtn.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(c.number);
+      copyBtn.textContent = 'Copied';
+      setTimeout(() => {
+        copyBtn.textContent = 'Copy';
+      }, 1400);
+    });
+
+    actions.appendChild(fillBtn);
+    actions.appendChild(copyBtn);
+    row.appendChild(meta);
+    row.appendChild(actions);
+    cardsList.appendChild(row);
+  }
+}
+
 async function loadMatchingEntries() {
   siteLabel.textContent = currentHost ? `Matching ${currentHost}` : 'Unlocked vault';
   const res = await chrome.runtime.sendMessage({
@@ -145,7 +238,7 @@ async function loadMatchingEntries() {
     return;
   }
 
-  setPill('Unlocked', 'pill-ok');
+  setPill(res.offline ? 'Offline Ready' : 'Unlocked', 'pill-ok');
   showOnly(mainPanel);
   const total = res.data?.total ?? 0;
   renderEntries(
@@ -156,6 +249,36 @@ async function loadMatchingEntries() {
   );
 }
 
+async function loadCards() {
+  const res = await chrome.runtime.sendMessage({ type: 'BRIDGE_CARDS' });
+  if (res?.ok) {
+    renderCards(res.data?.cards || []);
+  }
+}
+
+async function prefillSubscriptionForm() {
+  const nextMonth = new Date();
+  nextMonth.setMonth(nextMonth.getMonth() + 1);
+  subDate.value = nextMonth.toISOString().split('T')[0];
+
+  if (currentHost) {
+    const parts = currentHost.split('.');
+    const stem = parts.length >= 2 ? parts[parts.length - 2] : currentHost;
+    subTitle.value = stem.charAt(0).toUpperCase() + stem.slice(1);
+  }
+
+  if (currentTab?.id) {
+    try {
+      const info = await chrome.tabs.sendMessage(currentTab.id, { type: 'AEGIS_DETECT_SUB' });
+      if (info?.siteName) subTitle.value = info.siteName;
+      if (info?.detected?.cost) subCost.value = info.detected.cost;
+      if (info?.detected?.currency) subCurrency.value = info.detected.currency;
+    } catch {
+      // Tab without content script
+    }
+  }
+}
+
 async function init() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   currentTab = tab || null;
@@ -164,10 +287,31 @@ async function init() {
   }
 
   const health = await chrome.runtime.sendMessage({ type: 'BRIDGE_HEALTH' });
+  const tokenRes = await chrome.runtime.sendMessage({ type: 'GET_TOKEN' });
+
+  if (!tokenRes?.token) {
+    if (!health?.ok) {
+      setPill('Offline', 'pill-muted');
+      emptyTitle.textContent = 'Aegis Desktop is offline';
+      emptyDesc.textContent = 'Start Aegis Vault on your computer once to pair your browser.';
+      showOnly(emptyState);
+      return;
+    }
+    setPill('Pair needed', 'pill-warn');
+    pairingError.classList.add('hidden');
+    showOnly(pairingPanel);
+    return;
+  }
+
   if (!health?.ok) {
+    if (health?.offlineAvailable) {
+      setPill('Offline Ready', 'pill-ok');
+      await loadMatchingEntries();
+      return;
+    }
     setPill('Offline', 'pill-muted');
     emptyTitle.textContent = 'Aegis Desktop is offline';
-    emptyDesc.textContent = 'Start Aegis Vault on your computer and unlock your vault.';
+    emptyDesc.textContent = 'Open Aegis Vault once to sync your encrypted offline cache.';
     showOnly(emptyState);
     return;
   }
@@ -180,16 +324,36 @@ async function init() {
     return;
   }
 
-  const tokenRes = await chrome.runtime.sendMessage({ type: 'GET_TOKEN' });
-  if (!tokenRes?.token) {
-    setPill('Pair needed', 'pill-warn');
-    pairingError.classList.add('hidden');
-    showOnly(pairingPanel);
-    return;
-  }
-
   await loadMatchingEntries();
 }
+
+tabLogins.addEventListener('click', () => switchTab('logins'));
+tabCards.addEventListener('click', async () => {
+  switchTab('cards');
+  await loadCards();
+});
+tabSub.addEventListener('click', async () => {
+  switchTab('sub');
+  await prefillSubscriptionForm();
+});
+
+viewSub.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  subSaveBtn.disabled = true;
+  subSaveBtn.textContent = 'Saving...';
+  subMsg.classList.add('hidden');
+  const res = await chrome.runtime.sendMessage({
+    type: 'BRIDGE_SAVE_SUBSCRIPTION',
+    title: subTitle.value.trim(),
+    cost: subCost.value.trim(),
+    currency: subCurrency.value,
+    renewalDate: subDate.value || '',
+  });
+  subSaveBtn.disabled = false;
+  subSaveBtn.textContent = 'Save to Aegis Subscriptions';
+  subMsg.textContent = res?.ok ? 'Saved to Aegis Subscriptions!' : 'Could not save subscription.';
+  subMsg.classList.remove('hidden');
+});
 
 settingsBtn.addEventListener('click', async () => {
   const tokenRes = await chrome.runtime.sendMessage({ type: 'GET_TOKEN' });
@@ -240,7 +404,7 @@ genBtn.addEventListener('click', async () => {
         password: pw,
       });
     } catch {
-      // No password field on current tab; clipboard still has it
+      // No password field on current tab
     }
   }
   genBtn.textContent = 'Copied to clipboard!';

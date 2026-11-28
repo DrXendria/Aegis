@@ -367,8 +367,39 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock, onA
               })
           )
         ).filter((item): item is NonNullable<typeof item> => item !== null);
+        const bridgeCards = (
+          await Promise.all(
+            entries
+              .filter(e => e.type === 'credit_card' && (e.plaintextPassword || e.encryptedPassword?.ciphertext))
+              .map(async e => {
+                let raw = e.plaintextPassword || '';
+                if (!raw && e.encryptedPassword?.ciphertext && e.encryptedPassword?.iv) {
+                  try {
+                    raw = await decryptData(e.encryptedPassword.ciphertext, e.encryptedPassword.iv, cryptoKey);
+                  } catch {
+                    return null;
+                  }
+                }
+                if (!raw) return null;
+                try {
+                  const parsed = JSON.parse(raw) as { number?: string; expiry?: string; cvv?: string };
+                  if (!parsed.number) return null;
+                  return {
+                    id: e.id,
+                    title: e.title,
+                    number: parsed.number,
+                    expiry: parsed.expiry || '',
+                    cvv: parsed.cvv || '',
+                  };
+                } catch {
+                  return null;
+                }
+              })
+          )
+        ).filter((item): item is NonNullable<typeof item> => item !== null);
+
         if (!cancelled) {
-          await invoke('sync_bridge_vault', { entries: bridgeEntries });
+          await invoke('sync_bridge_vault', { entries: bridgeEntries, cards: bridgeCards });
         }
       } catch (err) {
         console.warn('[Aegis Bridge] sync skipped:', err);
@@ -388,35 +419,109 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock, onA
     };
   }, []);
 
-  // Listen for Auto-Save events from the browser extension once vault is loaded
+  // Listen for Auto-Save (password, card, subscription) and tray lock events once vault is loaded
   useEffect(() => {
     if (!isVaultLoaded) return;
-    let unlistenFn: (() => void) | null = null;
+    const unlisteners: Array<() => void> = [];
     (async () => {
       try {
         const { listen } = await import('@tauri-apps/api/event');
-        unlistenFn = await listen<{ title: string; username: string; password: string }>(
-          'bridge-save-credential',
-          async (event) => {
+
+        unlisteners.push(
+          await listen('tray-lock-vault', () => {
+            onLock();
+          })
+        );
+
+        unlisteners.push(
+          await listen<{ title: string; username: string; password: string }>(
+            'bridge-save-credential',
+            async (event) => {
+              const payload = event.payload;
+              if (!payload?.title || !payload?.password || !vaultFileRef.current) return;
+              try {
+                const encryptedPassword = await encryptData(payload.password, cryptoKey);
+                const newEntry: PasswordEntry = {
+                  id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                  type: 'password',
+                  title: payload.title.trim(),
+                  username: (payload.username || '').trim(),
+                  encryptedPassword,
+                  isFavorite: false,
+                  category: 'social',
+                  lastModified: Date.now(),
+                };
+                await saveSingleEntry(newEntry);
+              } catch (err) {
+                console.error('Failed to auto-save credential from browser extension:', err);
+              }
+            }
+          )
+        );
+
+        unlisteners.push(
+          await listen<{ title: string; number: string; expiry: string; cvv: string }>(
+            'bridge-save-card',
+            async (event) => {
+              const payload = event.payload;
+              if (!payload?.number || !vaultFileRef.current) return;
+              try {
+                const cardJson = JSON.stringify({
+                  number: payload.number.trim(),
+                  expiry: (payload.expiry || '').trim(),
+                  cvv: (payload.cvv || '').trim(),
+                });
+                const encryptedPassword = await encryptData(cardJson, cryptoKey);
+                const last4 = payload.number.replace(/\D/g, '').slice(-4);
+                const newEntry: PasswordEntry = {
+                  id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                  type: 'credit_card',
+                  title: (payload.title || (last4 ? `Card •••• ${last4}` : 'Credit Card')).trim(),
+                  username: last4 ? `•••• ${last4}` : '',
+                  encryptedPassword,
+                  isFavorite: false,
+                  category: 'finance',
+                  lastModified: Date.now(),
+                };
+                await saveSingleEntry(newEntry);
+              } catch (err) {
+                console.error('Failed to auto-save card from browser extension:', err);
+              }
+            }
+          )
+        );
+
+        unlisteners.push(
+          await listen<{
+            title: string;
+            cost: string;
+            currency: string;
+            renewal_date?: string | null;
+            payment_method?: string | null;
+          }>('bridge-save-subscription', async (event) => {
             const payload = event.payload;
-            if (!payload?.title || !payload?.password || !vaultFileRef.current) return;
+            if (!payload?.title || !payload?.cost || !vaultFileRef.current) return;
             try {
-              const encryptedPassword = await encryptData(payload.password, cryptoKey);
+              const encryptedPassword = await encryptData(payload.cost.trim(), cryptoKey);
               const newEntry: PasswordEntry = {
                 id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-                type: 'password',
+                type: 'subscription',
                 title: payload.title.trim(),
-                username: (payload.username || '').trim(),
+                username: '',
                 encryptedPassword,
+                cost: payload.cost.trim(),
+                currency: (payload.currency || getDefaultCurrencyForLang(i18n.language)).toUpperCase(),
+                renewalDate: payload.renewal_date || '',
+                paymentMethod: payload.payment_method || '',
                 isFavorite: false,
-                category: 'social',
+                category: 'entertainment',
                 lastModified: Date.now(),
               };
               await saveSingleEntry(newEntry);
             } catch (err) {
-              console.error('Failed to auto-save credential from browser extension:', err);
+              console.error('Failed to auto-save subscription from browser extension:', err);
             }
-          }
+          })
         );
       } catch {
         // Running outside Tauri desktop runtime
@@ -424,7 +529,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock, onA
     })();
 
     return () => {
-      if (unlistenFn) unlistenFn();
+      for (const fn of unlisteners) fn();
     };
   }, [cryptoKey, userId, isVaultLoaded]);
 

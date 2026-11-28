@@ -193,14 +193,20 @@ app.get('/api/stats', async (req, res) => {
   }
 
   try {
+    const ghToken = (process.env['GITHUB_TOKEN'] || '').trim();
+    const ghHeaders: Record<string, string> = {
+      Accept: 'application/vnd.github+json',
+      'User-Agent': 'aegis-web-ssr',
+    };
+    if (ghToken) {
+      ghHeaders['Authorization'] = `Bearer ${ghToken}`;
+    }
+
     const response = await fetch(
       `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=30`,
       {
-        headers: {
-          Accept: 'application/vnd.github+json',
-          'User-Agent': 'aegis-web-ssr',
-        },
-        signal: AbortSignal.timeout(4000),
+        headers: ghHeaders,
+        signal: AbortSignal.timeout(8000),
       },
     );
 
@@ -249,8 +255,21 @@ app.get('/api/stats', async (req, res) => {
 
     cachedStats = { data: payload, expiresAt: Date.now() + CACHE_TTL_MS };
     res.json(payload);
-  } catch {
-    res.status(502).json({ error: 'Failed to fetch GitHub release stats.' });
+  } catch (err) {
+    if (cachedStats) {
+      res.json(cachedStats.data);
+      return;
+    }
+    const reason = err instanceof Error ? err.message : 'GitHub request failed';
+    res.json({
+      totalDownloads: 0,
+      byPlatform: { windows: 0, macos: 0, linux: 0, other: 0 },
+      latestVersion: FALLBACK_VERSION,
+      releasesCount: 0,
+      releases: [],
+      updatedAt: new Date().toISOString(),
+      warning: `${reason} (Add GITHUB_TOKEN in Render Environment to avoid shared-IP rate limits.)`,
+    });
   }
 });
 

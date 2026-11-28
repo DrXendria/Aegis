@@ -21,7 +21,7 @@
   <p>
     <a href="https://github.com/DrXendria/Aegis/releases/latest"><img src="https://img.shields.io/github/v/release/DrXendria/Aegis?style=flat-square&color=10b981&label=s%C3%BCr%C3%BCm" alt="Son Sürüm" /></a>
     <a href="https://github.com/DrXendria/Aegis/releases"><img src="https://img.shields.io/github/downloads/DrXendria/Aegis/total?style=flat-square&color=3b82f6&label=indirme" alt="Toplam İndirme" /></a>
-    <a href="LICENSE"><img src="https://img.shields.io/github/license/DrXendria/Aegis?style=flat-square&color=475569&label=lisans" alt="MIT Lisansı" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/github/license/DrXendria/Aegis?style=flat-square&color=475569&label=lisans" alt="GPL-3.0 Lisansı" /></a>
     <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-1e293b?style=flat-square" alt="Platformlar" />
   </p>
 
@@ -189,7 +189,7 @@ npm run tauri build
 | PBKDF2 Turu | `600.000` | `650.000` | `600.000` | `100.100` |
 | Otomatik Yerel Yedek | Dahili (14g) | Hayır | Hayır | Hayır |
 | Abonelik Takibi | Dahili (22 kur) | Hayır | Hayır | Hayır |
-| Açık Kaynak | MIT | Hayır | GPL-3.0 | Hayır |
+| Açık Kaynak | GPL-3.0 | Hayır | GPL-3.0 | Hayır |
 | Dil Desteği | 25 | 12 | 16 | 8 |
 | Fiyat | Ücretsiz | \$35.88 / yıl | \$10.00 / yıl | \$36.00 / yıl |
 
@@ -197,5 +197,5 @@ npm run tauri build
 
 ## Lisans
 
-[DrXendria](https://github.com/DrXendria) tarafından [MIT Lisansı](LICENSE) altında yayınlanmıştır.
+[DrXendria](https://github.com/DrXendria) tarafından [GNU Genel Kamu Lisansı v3.0 (GPL-3.0)](LICENSE) altında yayınlanmıştır.
 Hata bildirimleri ve pull request'ler her zaman açıktır.
