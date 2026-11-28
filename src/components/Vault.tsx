@@ -30,14 +30,24 @@ const safeImpactFeedback = async (style: string) => {
 };
 
 import {
+  changeLocalAccountEmail,
+  changeLocalAccountPassword,
+  changeLocalMasterPassword,
+  deleteLocalAccount,
   getVaultStorageDir,
   readVaultFile,
   signOutLocalAccount,
   updateLocalAccountMeta,
   writeVaultFile,
   type EncryptedEntryDoc,
+  type LocalAccount,
   type LocalVaultFile
 } from '../localStore';
+import {
+  formatCurrencyAmount,
+  getDefaultCurrencyForLang,
+  getOrderedCurrencies
+} from '../currencies';
 
 import {
   LeadingActions,
@@ -55,6 +65,8 @@ interface VaultProps {
   userId: string;
   userEmail: string;
   onLock: () => void;
+  onAccountUpdate?: (account: LocalAccount) => void;
+  onMasterKeyChange?: (newKey: CryptoKey) => void;
 }
 
 interface PasswordEntry {
@@ -79,7 +91,7 @@ interface LocalEncryptedBackup {
   entries: Record<string, EncryptedEntryDoc>;
 }
 
-const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) => {
+const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock, onAccountUpdate, onMasterKeyChange }) => {
   const { t, i18n } = useTranslation();
   const [entries, setEntries] = useState<PasswordEntry[]>([]);
   const [customCategories, setCustomCategories] = useState<CustomCategory[]>([]);
@@ -105,9 +117,17 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
   const [userName, setUserName] = useState('');
 
   const [subCost, setSubCost] = useState('');
-  const [subCurrency, setSubCurrency] = useState('TRY');
+  const [subCurrency, setSubCurrency] = useState(() => getDefaultCurrencyForLang(i18n.language));
   const [subMethod, setSubMethod] = useState('');
   const [subDate, setSubDate] = useState('');
+
+  const orderedCurrencies = useMemo(() => getOrderedCurrencies(i18n.language), [i18n.language]);
+
+  useEffect(() => {
+    if (!editingId) {
+      setSubCurrency(getDefaultCurrencyForLang(i18n.language));
+    }
+  }, [i18n.language, editingId]);
 
   const [ccNumber, setCcNumber] = useState('');
   const [ccExpiry, setCcExpiry] = useState('');
@@ -115,6 +135,23 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
 
   // File import ref
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Browser extension bridge state
+  const [bridgeToken, setBridgeToken] = useState<string>('');
+  const [bridgePort, setBridgePort] = useState<number>(41937);
+  const [bridgeCopied, setBridgeCopied] = useState<boolean>(false);
+
+  // Account management state (Profile tab)
+  const [newEmailInput, setNewEmailInput] = useState(userEmail);
+  const [emailConfirmPass, setEmailConfirmPass] = useState('');
+  const [currAccPass, setCurrAccPass] = useState('');
+  const [newAccPass, setNewAccPass] = useState('');
+  const [currMasterPass, setCurrMasterPass] = useState('');
+  const [newMasterPass, setNewMasterPass] = useState('');
+  const [confirmMasterPass, setConfirmMasterPass] = useState('');
+  const [deleteAccPass, setDeleteAccPass] = useState('');
+  const [accountStatus, setAccountStatus] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  const [isAccountBusy, setIsAccountBusy] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -132,8 +169,6 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({});
-  const [baseCurrency, setBaseCurrency] = useState('TRY');
 
   // Inline editing state for user name
   const [isEditingName, setIsEditingName] = useState(false);
@@ -246,7 +281,6 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
 
       vaultFileRef.current = effectiveVault;
       setUserName(effectiveVault.userName || '');
-      setBaseCurrency(effectiveVault.baseCurrency || 'TRY');
       const rawCats = effectiveVault.customCategories || [];
       const normalizedCats: CustomCategory[] = rawCats.map((c: any) =>
         typeof c === 'string' ? { id: c, name: c } : c
@@ -294,16 +328,105 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
   useEffect(() => {
     setIsVaultLoaded(false);
     fetchVault();
-  }, [userId]);
+  }, [userId, cryptoKey]);
 
+  // Sync unlocked password entries to local browser-extension bridge (RAM only)
   useEffect(() => {
-    fetch(`https://api.exchangerate-api.com/v4/latest/${baseCurrency}`)
-      .then(res => res.json())
-      .then(data => {
-        if(data && data.rates) setExchangeRates(data.rates);
-      })
-      .catch(() => console.error("Could not fetch exchange rates"));
-  }, [baseCurrency]);
+    if (!isVaultLoaded) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { invoke } = await import('@tauri-apps/api/core');
+        if (cancelled) return;
+        const info = await invoke<{ port: number; token: string }>('get_bridge_info');
+        if (!cancelled) {
+          setBridgeToken(info.token);
+          setBridgePort(info.port);
+        }
+        const bridgeEntries = (
+          await Promise.all(
+            entries
+              .filter(e => e.type === 'password' && (e.plaintextPassword || e.encryptedPassword?.ciphertext))
+              .map(async e => {
+                let password = e.plaintextPassword || '';
+                if (!password && e.encryptedPassword?.ciphertext && e.encryptedPassword?.iv) {
+                  try {
+                    password = await decryptData(e.encryptedPassword.ciphertext, e.encryptedPassword.iv, cryptoKey);
+                  } catch {
+                    return null;
+                  }
+                }
+                if (!password) return null;
+                return {
+                  id: e.id,
+                  title: e.title,
+                  username: e.username || '',
+                  password,
+                  category: e.category || null,
+                };
+              })
+          )
+        ).filter((item): item is NonNullable<typeof item> => item !== null);
+        if (!cancelled) {
+          await invoke('sync_bridge_vault', { entries: bridgeEntries });
+        }
+      } catch (err) {
+        console.warn('[Aegis Bridge] sync skipped:', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [entries, isVaultLoaded, cryptoKey]);
+
+  // Clear bridge RAM cache when vault locks or unmounts
+  useEffect(() => {
+    return () => {
+      import('@tauri-apps/api/core')
+        .then(({ invoke }) => invoke('clear_bridge_vault'))
+        .catch(() => {});
+    };
+  }, []);
+
+  // Listen for Auto-Save events from the browser extension once vault is loaded
+  useEffect(() => {
+    if (!isVaultLoaded) return;
+    let unlistenFn: (() => void) | null = null;
+    (async () => {
+      try {
+        const { listen } = await import('@tauri-apps/api/event');
+        unlistenFn = await listen<{ title: string; username: string; password: string }>(
+          'bridge-save-credential',
+          async (event) => {
+            const payload = event.payload;
+            if (!payload?.title || !payload?.password || !vaultFileRef.current) return;
+            try {
+              const encryptedPassword = await encryptData(payload.password, cryptoKey);
+              const newEntry: PasswordEntry = {
+                id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                type: 'password',
+                title: payload.title.trim(),
+                username: (payload.username || '').trim(),
+                encryptedPassword,
+                isFavorite: false,
+                category: 'social',
+                lastModified: Date.now(),
+              };
+              await saveSingleEntry(newEntry);
+            } catch (err) {
+              console.error('Failed to auto-save credential from browser extension:', err);
+            }
+          }
+        );
+      } catch {
+        // Running outside Tauri desktop runtime
+      }
+    })();
+
+    return () => {
+      if (unlistenFn) unlistenFn();
+    };
+  }, [cryptoKey, userId, isVaultLoaded]);
 
   const persistVaultFile = async (nextVault: LocalVaultFile) => {
     await writeVaultFile(userId, nextVault);
@@ -321,7 +444,6 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
       return;
     }
     if (patch.userName !== undefined) setUserName(patch.userName);
-    if (patch.baseCurrency !== undefined) setBaseCurrency(patch.baseCurrency);
     if (patch.customCategories !== undefined) setCustomCategories(patch.customCategories);
 
     try {
@@ -1191,16 +1313,20 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
     return currentTabEntries.filter(e => e.category === categoryId).length;
   };
 
-  const totalMonthlyCostTRY = useMemo(() => {
-    let total = 0;
+  const monthlyCostSummary = useMemo(() => {
+    const totals = new Map<string, number>();
     entries.filter(e => e.type === 'subscription').forEach(sub => {
       const cost = parseFloat(sub.cost || '0');
-      if (!isNaN(cost) && exchangeRates[sub.currency || 'TRY']) {
-        total += cost / exchangeRates[sub.currency || 'TRY'];
+      if (!isNaN(cost) && cost > 0) {
+        const code = sub.currency || 'USD';
+        totals.set(code, (totals.get(code) || 0) + cost);
       }
     });
-    return total;
-  }, [entries, exchangeRates]);
+    if (totals.size === 0) return '0';
+    return Array.from(totals.entries())
+      .map(([code, sum]) => formatCurrencyAmount(sum, code))
+      .join(' + ');
+  }, [entries]);
 
   const displayUserName = userName || userEmail.split('@')[0];
   const userInitial = displayUserName.charAt(0).toUpperCase();
@@ -1295,41 +1421,260 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                 width="160px"
               />
             </div>
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
-              <div>
-                <h4 style={{ margin: 0, fontSize: '16px' }}>{t("currency") || "Para Birimi"}</h4>
-                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>{t("currency_desc") || "Aylık gider hesaplamasında kullanılacak ana birim."}</p>
-              </div>
-              <CustomDropdown
-                options={[
-                  { value: 'TRY', label: 'TRY (₺)' },
-                  { value: 'USD', label: 'USD ($)' },
-                  { value: 'EUR', label: 'EUR (€)' },
-                  { value: 'GBP', label: 'GBP (£)' },
-                  { value: 'RUB', label: 'RUB (₽)' },
-                  { value: 'INR', label: 'INR (₹)' },
-                  { value: 'KRW', label: 'KRW (₩)' },
-                  { value: 'CNY', label: 'CNY (¥)' },
-                  { value: 'JPY', label: 'JPY (¥)' },
-                  { value: 'BRL', label: 'BRL (R$)' },
-                  { value: 'SAR', label: 'SAR (ر.س)' },
-                  { value: 'AED', label: 'AED (د.إ)' },
-                  { value: 'EGP', label: 'EGP (E£)' },
-                  { value: 'IRR', label: 'IRR (﷼)' },
-                  { value: 'ILS', label: 'ILS (₪)' },
-                  { value: 'DKK', label: 'DKK (kr)' },
-                  { value: 'NOK', label: 'NOK (kr)' },
-                  { value: 'SEK', label: 'SEK (kr)' }
-                ]}
-                value={baseCurrency}
-                onChange={(val) => {
-                  saveVaultPatch({ baseCurrency: val });
-                }}
-                width="160px"
-              />
-            </div>
           </div>
+
+          <div className="glass-panel flex-col gap-4" style={{ padding: '24px' }}>
+            <h3 style={{ fontSize: '18px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px', margin: 0 }}>
+              Account &amp; Vault Security
+            </h3>
+
+            {accountStatus && (
+              <div
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  fontSize: '13px',
+                  background: accountStatus.type === 'ok' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                  border: `1px solid ${accountStatus.type === 'ok' ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)'}`,
+                  color: accountStatus.type === 'ok' ? '#34d399' : '#f87171',
+                }}
+              >
+                {accountStatus.text}
+              </div>
+            )}
+
+            {/* Change Email */}
+            <form
+              style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '16px', borderBottom: '1px solid var(--border-subtle)' }}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setAccountStatus(null);
+                setIsAccountBusy(true);
+                try {
+                  const updated = await changeLocalAccountEmail(userId, newEmailInput, emailConfirmPass);
+                  onAccountUpdate?.(updated);
+                  setEmailConfirmPass('');
+                  setAccountStatus({ type: 'ok', text: `E-posta güncellendi: ${updated.email}` });
+                } catch (err: any) {
+                  setAccountStatus({ type: 'err', text: err?.message || 'E-posta değiştirilemedi.' });
+                } finally {
+                  setIsAccountBusy(false);
+                }
+              }}
+            >
+              <strong style={{ fontSize: '14px' }}>E-posta Değiştir / Change Email</strong>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <input
+                  type="email"
+                  className="neon-input"
+                  style={{ flex: 1, minWidth: '180px' }}
+                  placeholder="Yeni e-posta / New email"
+                  value={newEmailInput}
+                  onChange={(e) => setNewEmailInput(e.target.value)}
+                  required
+                />
+                <input
+                  type="password"
+                  className="neon-input"
+                  style={{ flex: 1, minWidth: '180px' }}
+                  placeholder="Mevcut hesap şifresi"
+                  value={emailConfirmPass}
+                  onChange={(e) => setEmailConfirmPass(e.target.value)}
+                  required
+                />
+                <button type="submit" disabled={isAccountBusy} className="neon-btn primary" style={{ padding: '10px 16px' }}>
+                  {t('save') || 'Kaydet'}
+                </button>
+              </div>
+            </form>
+
+            {/* Change Layer-1 Account Password */}
+            <form
+              style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '16px', borderBottom: '1px solid var(--border-subtle)' }}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setAccountStatus(null);
+                setIsAccountBusy(true);
+                try {
+                  await changeLocalAccountPassword(userId, currAccPass, newAccPass);
+                  setCurrAccPass('');
+                  setNewAccPass('');
+                  setAccountStatus({ type: 'ok', text: 'Yerel hesap şifresi (1. Katman) güncellendi.' });
+                } catch (err: any) {
+                  setAccountStatus({ type: 'err', text: err?.message || 'Hesap şifresi değiştirilemedi.' });
+                } finally {
+                  setIsAccountBusy(false);
+                }
+              }}
+            >
+              <strong style={{ fontSize: '14px' }}>Hesap Şifresi Değiştir / Change Account Password (Layer 1)</strong>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <input
+                  type="password"
+                  className="neon-input"
+                  style={{ flex: 1, minWidth: '180px' }}
+                  placeholder="Mevcut hesap şifresi"
+                  value={currAccPass}
+                  onChange={(e) => setCurrAccPass(e.target.value)}
+                  required
+                />
+                <input
+                  type="password"
+                  className="neon-input"
+                  style={{ flex: 1, minWidth: '180px' }}
+                  placeholder="Yeni hesap şifresi (min 6)"
+                  value={newAccPass}
+                  onChange={(e) => setNewAccPass(e.target.value)}
+                  required
+                  minLength={6}
+                />
+                <button type="submit" disabled={isAccountBusy} className="neon-btn primary" style={{ padding: '10px 16px' }}>
+                  {t('save') || 'Kaydet'}
+                </button>
+              </div>
+            </form>
+
+            {/* Change Layer-2 Master Vault Password */}
+            <form
+              style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '16px', borderBottom: '1px solid var(--border-subtle)' }}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setAccountStatus(null);
+                if (newMasterPass !== confirmMasterPass) {
+                  setAccountStatus({ type: 'err', text: 'Yeni Ana Şifreler eşleşmiyor.' });
+                  return;
+                }
+                setIsAccountBusy(true);
+                try {
+                  const { newKey, updatedVault } = await changeLocalMasterPassword(
+                    userId,
+                    currMasterPass,
+                    newMasterPass
+                  );
+                  vaultFileRef.current = updatedVault;
+                  onMasterKeyChange?.(newKey);
+                  setCurrMasterPass('');
+                  setNewMasterPass('');
+                  setConfirmMasterPass('');
+                  setAccountStatus({
+                    type: 'ok',
+                    text: 'Ana Kasa Şifresi (2. Katman) güncellendi ve tüm kayıtlar yeni anahtarla yeniden şifrelendi.',
+                  });
+                } catch (err: any) {
+                  setAccountStatus({ type: 'err', text: err?.message || 'Ana Şifre değiştirilemedi.' });
+                } finally {
+                  setIsAccountBusy(false);
+                }
+              }}
+            >
+              <strong style={{ fontSize: '14px' }}>Ana Kasa Şifresi Değiştir / Change Master Password (Layer 2)</strong>
+              <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>
+                Kasandaki tüm kayıtlar yeni Ana Şifre ile atomik olarak yeniden şifrelenir.
+              </p>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <input
+                  type="password"
+                  className="neon-input"
+                  style={{ flex: 1, minWidth: '150px' }}
+                  placeholder="Mevcut Ana Şifre"
+                  value={currMasterPass}
+                  onChange={(e) => setCurrMasterPass(e.target.value)}
+                  required
+                />
+                <input
+                  type="password"
+                  className="neon-input"
+                  style={{ flex: 1, minWidth: '150px' }}
+                  placeholder="Yeni Ana Şifre (min 6)"
+                  value={newMasterPass}
+                  onChange={(e) => setNewMasterPass(e.target.value)}
+                  required
+                  minLength={6}
+                />
+                <input
+                  type="password"
+                  className="neon-input"
+                  style={{ flex: 1, minWidth: '150px' }}
+                  placeholder="Yeni Ana Şifre (tekrar)"
+                  value={confirmMasterPass}
+                  onChange={(e) => setConfirmMasterPass(e.target.value)}
+                  required
+                  minLength={6}
+                />
+                <button type="submit" disabled={isAccountBusy} className="neon-btn primary" style={{ padding: '10px 16px' }}>
+                  {t('save') || 'Kaydet'}
+                </button>
+              </div>
+            </form>
+
+            {/* Danger Zone: Delete Local Account & Vault */}
+            <form
+              style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setAccountStatus(null);
+                setIsAccountBusy(true);
+                try {
+                  await deleteLocalAccount(userId, deleteAccPass);
+                  onLock();
+                } catch (err: any) {
+                  setAccountStatus({ type: 'err', text: err?.message || 'Hesap silinemedi.' });
+                  setIsAccountBusy(false);
+                }
+              }}
+            >
+              <strong style={{ fontSize: '14px', color: '#f87171' }}>Hesabı ve Kasayı Kalıcı Sil / Delete Account &amp; Vault</strong>
+              <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>
+                Bu işlem bu bilgisayardaki yerel profili ve şifreli kasa dosyasını (.aegis) kalıcı olarak siler. Geri alınamaz.
+              </p>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <input
+                  type="password"
+                  className="neon-input"
+                  style={{ flex: 1, minWidth: '200px' }}
+                  placeholder="Onaylamak için hesap şifreni gir"
+                  value={deleteAccPass}
+                  onChange={(e) => setDeleteAccPass(e.target.value)}
+                  required
+                />
+                <button type="submit" disabled={isAccountBusy} className="neon-btn danger" style={{ padding: '10px 16px' }}>
+                  Hesabı Kalıcı Sil
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {bridgeToken && (
+            <div className="glass-panel flex-col gap-4" style={{ padding: '24px' }}>
+              <h3 style={{ fontSize: '18px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px', margin: 0 }}>
+                Browser Extension Pairing (Opera GX / Chrome / Brave / Edge / Firefox)
+              </h3>
+              <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+                Paste this local pairing token into the Aegis Vault browser extension to enable 100% offline Autofill and Auto-Save on <code>127.0.0.1:{bridgePort}</code>.
+              </p>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  readOnly
+                  value={bridgeToken}
+                  className="neon-input"
+                  style={{ fontFamily: 'ui-monospace, monospace', fontSize: '13px', flex: 1 }}
+                />
+                <button
+                  type="button"
+                  className="neon-btn primary"
+                  style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}
+                  onClick={() => {
+                    navigator.clipboard.writeText(bridgeToken);
+                    setBridgeCopied(true);
+                    setTimeout(() => setBridgeCopied(false), 1800);
+                  }}
+                >
+                  {bridgeCopied ? 'Copied' : 'Copy Token'}
+                </button>
+              </div>
+            </div>
+          )}
 
         </div>
       );
@@ -2032,7 +2377,7 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
               </h2>
               {activeTab === 'subs' && (
                 <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px' }}>
-                  {t("monthly_cost")} <strong style={{ color: 'var(--text-primary)' }}>~{totalMonthlyCostTRY.toFixed(2)} TL</strong>
+                  {t("monthly_cost")} <strong style={{ color: 'var(--text-primary)' }}>{monthlyCostSummary}</strong>
                 </p>
               )}
               {activeTab === 'old' && (
@@ -2243,9 +2588,11 @@ const Vault: React.FC<VaultProps> = ({ cryptoKey, userId, userEmail, onLock }) =
                         WebkitAppearance: 'none'
                       }}
                     >
-                      <option value="TRY" style={{ background: '#141416', color: '#ededed' }}>TRY (₺)</option>
-                      <option value="USD" style={{ background: '#141416', color: '#ededed' }}>USD ($)</option>
-                      <option value="EUR" style={{ background: '#141416', color: '#ededed' }}>EUR (€)</option>
+                      {orderedCurrencies.map((c) => (
+                        <option key={c.code} value={c.code} style={{ background: '#141416', color: '#ededed' }}>
+                          {c.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <input 

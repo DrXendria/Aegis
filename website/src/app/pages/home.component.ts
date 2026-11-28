@@ -4,6 +4,7 @@ import { AnalyticsService } from '../services/analytics.service';
 import { I18nService } from '../services/i18n.service';
 import { OsPlatform, ReleaseAsset, ReleaseService } from '../services/release.service';
 import { SeoService } from '../services/seo.service';
+import { getExtensionCardCopy } from './extension-card.data';
 import { getInstallNotes } from './install-notes.data';
 import { getPkgInstallCopy } from './pkg-install.data';
 
@@ -185,6 +186,22 @@ import { getPkgInstallCopy } from './pkg-install.data';
               {{ pkgCopied() ? pkgCopy().copied : pkgCopy().copy }}
             </button>
           </div>
+        </div>
+
+        <div class="ext-card card">
+          <div class="ext-copy">
+            <span class="rec-tag">{{ extCopy().badge }}</span>
+            <h3>{{ extCopy().title }}</h3>
+            <p>{{ extCopy().desc }}</p>
+            <span class="ext-browsers">{{ extCopy().browsers }}</span>
+          </div>
+          <a
+            [href]="extensionZipUrl()"
+            (click)="onExtensionDownload()"
+            class="btn btn-primary ext-btn"
+          >
+            {{ extCopy().downloadBtn }}
+          </a>
         </div>
 
         <details class="install-notes card">
@@ -553,6 +570,19 @@ export class HomeComponent implements OnInit {
   readonly detectedOs = this.releaseService.detectedOs;
   readonly installNotes = computed(() => getInstallNotes(this.i18n.lang()));
   readonly pkgCopy = computed(() => getPkgInstallCopy(this.i18n.lang()));
+  readonly extCopy = computed(() => getExtensionCardCopy(this.i18n.lang()));
+  readonly extensionZipUrl = computed(
+    () =>
+      `https://github.com/DrXendria/Aegis/releases/download/${this.release().tag}/Aegis_${this.release().tag}_browser-extension.zip`,
+  );
+
+  onExtensionDownload(): void {
+    this.analytics.trackDownload(
+      'browser-extension',
+      '.zip',
+      `Aegis_${this.release().tag}_browser-extension.zip`,
+    );
+  }
 
   readonly pkgTabs = [
     {

@@ -76,16 +76,17 @@ scoop install aegis-vault
 winget install DrXendria.Aegis
 ```
 
-### Doğrudan İndirme (`v0.2.2`)
+### Doğrudan İndirme (`v0.3.0`)
 
 | Platform | Paket | İndirme |
 | :--- | :--- | :--- |
-| Windows (x64) | NSIS Kurulum (`.exe`) | [Aegis_0.2.2_x64-setup.exe](https://github.com/DrXendria/Aegis/releases/download/v0.2.2/Aegis_0.2.2_x64-setup.exe) |
-| Windows (x64) | MSI Paketi (`.msi`) | [Aegis_0.2.2_x64_en-US.msi](https://github.com/DrXendria/Aegis/releases/download/v0.2.2/Aegis_0.2.2_x64_en-US.msi) |
-| macOS (Apple Silicon) | Disk Kalıbı (`.dmg`) | [Aegis_0.2.2_aarch64.dmg](https://github.com/DrXendria/Aegis/releases/download/v0.2.2/Aegis_0.2.2_aarch64.dmg) |
-| Linux (Evrensel) | Taşınabilir (`.AppImage`) | [Aegis_0.2.2_amd64.AppImage](https://github.com/DrXendria/Aegis/releases/download/v0.2.2/Aegis_0.2.2_amd64.AppImage) |
-| Linux (Debian / Ubuntu / Mint) | Debian Paketi (`.deb`) | [Aegis_0.2.2_amd64.deb](https://github.com/DrXendria/Aegis/releases/download/v0.2.2/Aegis_0.2.2_amd64.deb) |
-| Linux (Fedora / RHEL / openSUSE) | RPM Paketi (`.rpm`) | [Aegis-0.2.2-1.x86_64.rpm](https://github.com/DrXendria/Aegis/releases/download/v0.2.2/Aegis-0.2.2-1.x86_64.rpm) |
+| Windows (x64) | NSIS Kurulum (`.exe`) | [Aegis_0.3.0_x64-setup.exe](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_0.3.0_x64-setup.exe) |
+| Windows (x64) | MSI Paketi (`.msi`) | [Aegis_0.3.0_x64_en-US.msi](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_0.3.0_x64_en-US.msi) |
+| macOS (Apple Silicon) | Disk Kalıbı (`.dmg`) | [Aegis_0.3.0_aarch64.dmg](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_0.3.0_aarch64.dmg) |
+| Linux (Evrensel) | Taşınabilir (`.AppImage`) | [Aegis_0.3.0_amd64.AppImage](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_0.3.0_amd64.AppImage) |
+| Linux (Debian / Ubuntu / Mint) | Debian Paketi (`.deb`) | [Aegis_0.3.0_amd64.deb](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_0.3.0_amd64.deb) |
+| Linux (Fedora / RHEL / openSUSE) | RPM Paketi (`.rpm`) | [Aegis-0.3.0-1.x86_64.rpm](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis-0.3.0-1.x86_64.rpm) |
+| Tarayıcı Eklentisi (Opera GX / Chrome / Brave / Edge / Firefox) | Manifest V3 (`.zip`) | [Aegis_v0.3.0_browser-extension.zip](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_v0.3.0_browser-extension.zip) |
 
 > [!NOTE]
 > **İlk kurulum notu:** macOS'te `Aegis.app` üzerine sağ tıklayıp **Aç** deyin (veya `xattr -cr /Applications/Aegis.app` çalıştırın). Windows'ta SmartScreen uyarısı çıkarsa **Ek bilgi → Yine de çalıştır** seçeneğine tıklayın.
@@ -138,9 +139,11 @@ sequenceDiagram
 ## Özellikler
 
 - **Tasarım Gereği Çevrimdışı:** Bulut sunucusu, API anahtarı veya ele geçirilecek hesap yok. Çoklu cihaz senkronu isterseniz şifreli `.aegis` dosyanızı Syncthing, Nextcloud veya USB ile kendiniz taşıyabilirsiniz.
+- **Tarayıcı Eklentisi (Opera GX / Chrome / Brave / Edge / Firefox):** Eşleştirme anahtarlı yerel `127.0.0.1` köprüsü üzerinden %100 çevrimdışı Otomatik Doldurma (Autofill) ve Otomatik Kaydetme (Auto-Save).
+- **Tam Hesap & Kasa Yönetimi:** E-posta değiştirme, 1. katman hesap şifresi değiştirme, 2. katman Ana Şifre değiştirme (atomik yeniden şifreleme ile) ve yerel hesabı/kasayı kalıcı silme.
 - **Tek Tıkla Geçiş:** Google Chrome (`.csv`), Bitwarden (`.csv` / `.json`), LastPass (`.csv`) ve önceki Aegis v2 şifreli yedeklerinden (`.json`) doğrudan içe aktarma.
 - **Şifre Sağlığı:** Dahili kriptografik şifre üretici ve 90+ gündür yenilenmeyen şifreler için otomatik hatırlatma.
-- **Kartlar, Notlar & Abonelikler:** Maskeli kart bilgileri, şifreli notlar ve 18 para biriminde abonelik takibi.
+- **Kartlar, Notlar & Abonelikler:** Maskeli kart bilgileri, şifreli notlar ve dil bazlı sıralanan 22 para biriminde net toplamlı abonelik takibi.
 - **25 Dil Desteği:** Kalıcı dil seçimi ve sağdan sola (RTL) desteği ile tam yerelleştirme.
 
 ---
@@ -185,7 +188,7 @@ npm run tauri build
 | %100 Yerel / Çevrimdışı | Evet | Hayır | Sadece Self-Host | Hayır |
 | PBKDF2 Turu | `600.000` | `650.000` | `600.000` | `100.100` |
 | Otomatik Yerel Yedek | Dahili (14g) | Hayır | Hayır | Hayır |
-| Abonelik Takibi | Dahili (18 kur) | Hayır | Hayır | Hayır |
+| Abonelik Takibi | Dahili (22 kur) | Hayır | Hayır | Hayır |
 | Açık Kaynak | MIT | Hayır | GPL-3.0 | Hayır |
 | Dil Desteği | 25 | 12 | 16 | 8 |
 | Fiyat | Ücretsiz | \$35.88 / yıl | \$10.00 / yıl | \$36.00 / yıl |

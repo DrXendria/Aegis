@@ -20,7 +20,7 @@ const angularApp = new AngularNodeAppEngine({
 });
 
 const GITHUB_REPO = 'DrXendria/Aegis';
-const FALLBACK_VERSION = '0.2.2';
+const FALLBACK_VERSION = '0.3.0';
 const CACHE_TTL_MS = 15 * 60 * 1000;
 
 interface ReleaseAsset {

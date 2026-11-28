@@ -1,4 +1,8 @@
-use tauri::Manager;
+mod bridge;
+
+use bridge::{BridgeEntry, BridgeInfo, BridgeState, SharedBridgeState, BRIDGE_PORT};
+use std::sync::{Arc, Mutex};
+use tauri::{Manager, State};
 
 fn sanitize_filename(filename: &str) -> Result<String, String> {
     std::path::Path::new(filename)
@@ -48,6 +52,22 @@ fn write_local_file(
 }
 
 #[tauri::command]
+fn delete_local_file(app: tauri::AppHandle, filename: String) -> Result<(), String> {
+    let safe_name = sanitize_filename(&filename)?;
+    let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    let target_path = data_dir.join(&safe_name);
+    let bak_path = data_dir.join(format!("{}.bak", safe_name));
+
+    if target_path.exists() {
+        std::fs::remove_file(&target_path).map_err(|e| e.to_string())?;
+    }
+    if bak_path.exists() {
+        let _ = std::fs::remove_file(&bak_path);
+    }
+    Ok(())
+}
+
+#[tauri::command]
 fn get_vault_data_dir(app: tauri::AppHandle) -> Result<String, String> {
     let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
     Ok(data_dir.to_string_lossy().to_string())
@@ -76,6 +96,34 @@ fn save_encrypted_backup(
     Ok(file_path.to_string_lossy().to_string())
 }
 
+#[tauri::command]
+fn get_bridge_info(state: State<SharedBridgeState>) -> Result<BridgeInfo, String> {
+    let guard = state.lock().map_err(|_| "Bridge lock failed".to_string())?;
+    Ok(BridgeInfo {
+        port: BRIDGE_PORT,
+        token: guard.token.clone(),
+    })
+}
+
+#[tauri::command]
+fn sync_bridge_vault(
+    state: State<SharedBridgeState>,
+    entries: Vec<BridgeEntry>,
+) -> Result<(), String> {
+    let mut guard = state.lock().map_err(|_| "Bridge lock failed".to_string())?;
+    guard.entries = entries;
+    guard.unlocked = true;
+    Ok(())
+}
+
+#[tauri::command]
+fn clear_bridge_vault(state: State<SharedBridgeState>) -> Result<(), String> {
+    let mut guard = state.lock().map_err(|_| "Bridge lock failed".to_string())?;
+    guard.entries.clear();
+    guard.unlocked = false;
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[allow(unused_mut)]
@@ -89,11 +137,27 @@ pub fn run() {
 
     builder
         .plugin(tauri_plugin_notification::init())
+        .setup(|app| {
+            let handle = app.handle().clone();
+            let token = bridge::load_or_create_token(&handle);
+            let shared: SharedBridgeState = Arc::new(Mutex::new(BridgeState {
+                token,
+                unlocked: false,
+                entries: Vec::new(),
+            }));
+            app.manage(Arc::clone(&shared));
+            bridge::start_bridge_server(handle, shared);
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             read_local_file,
             write_local_file,
+            delete_local_file,
             get_vault_data_dir,
-            save_encrypted_backup
+            save_encrypted_backup,
+            get_bridge_info,
+            sync_bridge_vault,
+            clear_bridge_vault
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

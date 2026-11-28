@@ -76,16 +76,17 @@ scoop install aegis-vault
 winget install DrXendria.Aegis
 ```
 
-### Direct Downloads (`v0.2.2`)
+### Direct Downloads (`v0.3.0`)
 
 | Platform | Package | Download |
 | :--- | :--- | :--- |
-| Windows (x64) | NSIS Installer (`.exe`) | [Aegis_0.2.2_x64-setup.exe](https://github.com/DrXendria/Aegis/releases/download/v0.2.2/Aegis_0.2.2_x64-setup.exe) |
-| Windows (x64) | MSI Package (`.msi`) | [Aegis_0.2.2_x64_en-US.msi](https://github.com/DrXendria/Aegis/releases/download/v0.2.2/Aegis_0.2.2_x64_en-US.msi) |
-| macOS (Apple Silicon) | Disk Image (`.dmg`) | [Aegis_0.2.2_aarch64.dmg](https://github.com/DrXendria/Aegis/releases/download/v0.2.2/Aegis_0.2.2_aarch64.dmg) |
-| Linux (Universal) | Portable (`.AppImage`) | [Aegis_0.2.2_amd64.AppImage](https://github.com/DrXendria/Aegis/releases/download/v0.2.2/Aegis_0.2.2_amd64.AppImage) |
-| Linux (Debian / Ubuntu / Mint) | Debian Package (`.deb`) | [Aegis_0.2.2_amd64.deb](https://github.com/DrXendria/Aegis/releases/download/v0.2.2/Aegis_0.2.2_amd64.deb) |
-| Linux (Fedora / RHEL / openSUSE) | RPM Package (`.rpm`) | [Aegis-0.2.2-1.x86_64.rpm](https://github.com/DrXendria/Aegis/releases/download/v0.2.2/Aegis-0.2.2-1.x86_64.rpm) |
+| Windows (x64) | NSIS Installer (`.exe`) | [Aegis_0.3.0_x64-setup.exe](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_0.3.0_x64-setup.exe) |
+| Windows (x64) | MSI Package (`.msi`) | [Aegis_0.3.0_x64_en-US.msi](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_0.3.0_x64_en-US.msi) |
+| macOS (Apple Silicon) | Disk Image (`.dmg`) | [Aegis_0.3.0_aarch64.dmg](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_0.3.0_aarch64.dmg) |
+| Linux (Universal) | Portable (`.AppImage`) | [Aegis_0.3.0_amd64.AppImage](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_0.3.0_amd64.AppImage) |
+| Linux (Debian / Ubuntu / Mint) | Debian Package (`.deb`) | [Aegis_0.3.0_amd64.deb](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_0.3.0_amd64.deb) |
+| Linux (Fedora / RHEL / openSUSE) | RPM Package (`.rpm`) | [Aegis-0.3.0-1.x86_64.rpm](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis-0.3.0-1.x86_64.rpm) |
+| Browser Extension (Opera GX / Chrome / Brave / Edge / Firefox) | Manifest V3 (`.zip`) | [Aegis_v0.3.0_browser-extension.zip](https://github.com/DrXendria/Aegis/releases/download/v0.3.0/Aegis_v0.3.0_browser-extension.zip) |
 
 > [!NOTE]
 > **Unsigned binary notice:** On macOS, right-click `Aegis.app` → **Open** (or run `xattr -cr /Applications/Aegis.app`). On Windows, click **More info → Run anyway** if SmartScreen prompts on first launch.
@@ -138,9 +139,11 @@ sequenceDiagram
 ## Features
 
 - **Offline by Design:** Zero cloud servers, zero API keys, zero accounts to breach. Sync across devices on your own terms via Syncthing, Nextcloud, USB, or encrypted backups.
+- **Browser Extension (Opera GX / Chrome / Brave / Edge / Firefox):** 100% local Autofill and Auto-Save via a pairing-token authenticated `127.0.0.1` bridge—credentials stay in RAM only while unlocked and never touch the internet.
+- **Full Local Account Management:** Change email, Layer-1 account password, Layer-2 Master Password (with atomic vault re-encryption), or permanently delete your local profile and vault.
 - **One-Click Migration:** Import directly from Google Chrome (`.csv`), Bitwarden (`.csv` / `.json`), LastPass (`.csv`), or previous Aegis v2 encrypted backups (`.json`).
 - **Password Health:** Built-in cryptographic password generator and automatic 90-day aging reminders.
-- **Cards, Notes & Subscriptions:** Masked payment cards, encrypted notes, and recurring subscription tracking across 18 currencies.
+- **Cards, Notes & Subscriptions:** Masked payment cards, encrypted notes, and recurring subscription tracking across 22 currencies with language-prioritized currency ordering and exact per-currency totals.
 - **25 Languages:** Complete native localization with persistent language selection and RTL support.
 
 ---
@@ -185,7 +188,7 @@ npm run tauri build
 | 100% Local / Offline | Yes | No | Self-host only | No |
 | PBKDF2 Iterations | `600,000` | `650,000` | `600,000` | `100,100` |
 | Automatic Local Backups | Built-in (14d) | No | No | No |
-| Subscription Tracker | Built-in (18 FX) | No | No | No |
+| Subscription Tracker | Built-in (22 FX) | No | No | No |
 | Open Source | MIT | No | GPL-3.0 | No |
 | Languages | 25 | 12 | 16 | 8 |
 | Price | Free | \$35.88 / yr | \$10.00 / yr | \$36.00 / yr |

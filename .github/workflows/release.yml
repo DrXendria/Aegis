@@ -53,14 +53,34 @@ jobs:
           releaseBody: |
             ### 🛡️ Aegis Vault v__VERSION__
             
+            - 🧩 **Browser Extension (Opera GX / Chrome / Brave / Edge / Firefox):** 100% local Autofill & Auto-Save via authenticated `127.0.0.1` bridge (zero cloud).
             - 🔒 **100% Local Zero-Knowledge Architecture:** AES-256-GCM + PBKDF2 (600,000 rounds), zero cloud dependency.
-            - 🔑 **Two-Layer Local Protection:** Email + PBKDF2-hashed account password + Master Password vault encryption.
+            - 🔑 **Full Account & Master Password Management:** Change email, Layer-1 account password, Layer-2 Master Password (atomic vault re-encryption), or permanently delete local account.
+            - 💱 **22 Currencies (100% Offline):** Smart currency ordering by app language with exact per-currency monthly totals.
             - 💾 **Atomic Saves & Automatic 2-Week Encrypted Disk Backups:** Crash-safe `.tmp` + `.bak` writes and automatic backups in `Documents/Aegis-Backups`.
             - 🌍 **25 Global Languages:** 100% native localization.
-            - 📥 **1-Click Import/Export:** Support for Chrome, Bitwarden, LastPass, and Aegis Encrypted v2 JSON.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+  package-extension:
+    needs: release
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Zip and attach browser extension to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          ZIP_NAME="Aegis_${TAG}_browser-extension.zip"
+          (cd browser-extension && zip -r "../${ZIP_NAME}" .)
+          gh release upload "${TAG}" "${ZIP_NAME}" --clobber
 
   update-homebrew:
     needs: release

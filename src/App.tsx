@@ -29,6 +29,8 @@ function App() {
           userId={account.id}
           userEmail={account.email}
           onLock={handleLock}
+          onAccountUpdate={(updated) => setAccount(updated)}
+          onMasterKeyChange={(newKey) => setCryptoKey(newKey)}
         />
       )}
       <div className="developer-credit">

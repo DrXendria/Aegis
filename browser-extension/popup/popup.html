@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aegis Vault</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="header">
+    <div class="brand">
+      <img src="../icons/icon-48.png" alt="Aegis Vault" width="20" height="20">
+      <span>Aegis Vault</span>
+    </div>
+    <div class="header-right">
+      <span id="status-pill" class="pill pill-muted">Checking...</span>
+      <button id="settings-btn" type="button" class="icon-btn" title="Pairing settings" aria-label="Pairing settings">
+        &#9881;
+      </button>
+    </div>
+  </header>
+
+  <section id="pairing-panel" class="panel hidden">
+    <h2>Pair with Aegis Desktop</h2>
+    <p class="muted">Open Aegis Vault Desktop &rarr; <strong>Profile</strong> and copy your local pairing token.</p>
+    <input id="token-input" type="password" placeholder="Paste 32-character pairing token..." autocomplete="off">
+    <div class="row">
+      <button id="save-token-btn" type="button" class="btn primary">Connect</button>
+      <button id="cancel-token-btn" type="button" class="btn">Cancel</button>
+    </div>
+    <p id="pairing-error" class="error hidden"></p>
+  </section>
+
+  <main id="main-panel" class="main hidden">
+    <div class="search-wrap">
+      <input id="search-input" type="search" placeholder="Search unlocked vault..." autocomplete="off">
+    </div>
+
+    <div id="site-label" class="section-label">Matching this site</div>
+    <div id="entries-list" class="entries"></div>
+
+    <div class="footer-bar">
+      <button id="gen-btn" type="button" class="btn full">Generate &amp; Copy 20-char Password</button>
+    </div>
+  </main>
+
+  <section id="empty-state" class="panel hidden">
+    <h2 id="empty-title">Aegis Desktop is offline</h2>
+    <p id="empty-desc" class="muted">Launch Aegis Vault on your computer and unlock your vault to autofill passwords.</p>
+    <button id="retry-btn" type="button" class="btn primary full">Retry Connection</button>
+  </section>
+
+  <script src="popup.js"></script>
+</body>
+</html>

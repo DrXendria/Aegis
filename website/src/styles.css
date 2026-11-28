@@ -330,3 +330,42 @@ code {
   padding: 6px 12px;
   font-size: 12.5px;
 }
+
+/* Browser extension callout */
+.ext-card {
+  margin-top: 18px;
+  padding: 20px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.ext-copy {
+  max-width: 680px;
+}
+
+.ext-copy h3 {
+  margin: 10px 0 6px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ext-copy p {
+  margin: 0 0 8px 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.ext-browsers {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.ext-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
