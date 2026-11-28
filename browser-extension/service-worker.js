@@ -107,6 +107,7 @@ async function saveOfflineQueue(queue) {
   } catch {
     // Ignore if alarms unavailable
   }
+  ensureFastSyncPoll();
 }
 
 function domainMatches(entryTitle, host) {
@@ -154,16 +155,21 @@ async function refreshOfflineSnapshot() {
   }
 }
 
+let flushInProgress = false;
+
 async function flushOfflineQueueIfOnline() {
-  const queue = await loadOfflineQueue();
-  if (queue.length === 0) return false;
+  if (flushInProgress) return false;
+  flushInProgress = true;
+  try {
+    const queue = await loadOfflineQueue();
+    if (queue.length === 0) return false;
 
-  const health = await bridgeFetch('/health');
-  if (!health.ok || !health.data?.unlocked) return false;
+    const health = await bridgeFetch('/health');
+    if (!health.ok || !health.data?.unlocked) return false;
 
-  const remaining = [];
-  await Promise.all(
-    queue.map(async (item) => {
+    const remaining = [];
+    // Send sequentially so Aegis Desktop atomic saves never race each other
+    for (const item of queue) {
       let endpoint = '/save';
       if (item.kind === 'card') endpoint = '/save-card';
       else if (item.kind === 'subscription') endpoint = '/save-subscription';
@@ -174,15 +180,35 @@ async function flushOfflineQueueIfOnline() {
       });
       if (!res.ok) {
         remaining.push(item);
+      } else {
+        await new Promise((r) => setTimeout(r, 120));
       }
-    })
-  );
+    }
 
-  await saveOfflineQueue(remaining);
-  if (remaining.length === 0) {
-    await refreshOfflineSnapshot();
+    await saveOfflineQueue(remaining);
+    if (remaining.length === 0) {
+      await refreshOfflineSnapshot();
+    }
+    return remaining.length === 0;
+  } finally {
+    flushInProgress = false;
   }
-  return remaining.length === 0;
+}
+
+let fastPollTimer = null;
+function ensureFastSyncPoll() {
+  if (fastPollTimer) return;
+  let ticks = 0;
+  fastPollTimer = setInterval(async () => {
+    ticks += 1;
+    const queue = await loadOfflineQueue();
+    if (queue.length === 0 || ticks > 90) {
+      clearInterval(fastPollTimer);
+      fastPollTimer = null;
+      return;
+    }
+    await flushOfflineQueueIfOnline();
+  }, 2000);
 }
 
 async function enqueueOfflineSave(kind, body) {
@@ -238,6 +264,7 @@ async function enqueueOfflineSave(kind, body) {
   } catch {
     // Ignore if alarms unavailable
   }
+  ensureFastSyncPoll();
 }
 
 async function updateBadgeForTab(tabId, url) {
@@ -266,6 +293,12 @@ async function updateBadgeForTab(tabId, url) {
   } catch {
     await chrome.action.setBadgeText({ tabId, text: '' }).catch(() => {});
   }
+}
+
+if (chrome.windows?.onFocusChanged) {
+  chrome.windows.onFocusChanged.addListener(async () => {
+    await flushOfflineQueueIfOnline();
+  });
 }
 
 if (chrome.alarms?.onAlarm) {
